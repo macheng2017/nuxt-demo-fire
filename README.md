@@ -76,8 +76,11 @@ mongoose.model('User', UserSchema)
 
 // 测试
 const User = mongoose.model('User')
-(async ()=> {
+;(async ()=> {
   console.log( await User.find({}).exec())
+
+
+
 })()
 
 ```
@@ -96,3 +99,46 @@ node mongoose.js
 mongodb opend!
 Mongoose: users.find({}, { fields: {} })
 ```
+
+
+```js
+// 修改数据
+ const user = await User.findOne({name: 'Vue'})
+  user.name = 'Vue SSR'
+  await user.save()
+  console.log(await User.find({}).exec())
+```
+### 让 times +1
+
+```js
+const UserSchema = new mongoose.Schema({
+  name: String,
+  times:{
+    type: Number,
+    default: 0
+  }
+})
+
+UserSchema.pre('save', function(next) {
+  this.times ++
+  next()
+})
+```
+* [使用pre(预处理)hook(钩子) 对数据进行预处理](http://mongoosejs.com/docs/api.html#schema_Schema-pre)
+
+
+添加静态方法
+
+```js
+// 在UserSchema上添加静态方法
+UserSchema.statics = {
+  async getUser(name) {
+    const user = await this.findOne({name: name}).exec()
+    return user
+  }
+}
+```
+
+* UserSchema.statics [可以直接在Schema上直接添加静态方法](http://mongoosejs.com/docs/api.html#schema_Schema-static)
+* UserSchema.method  可以对实例添加一些方法,查询数据库
+
