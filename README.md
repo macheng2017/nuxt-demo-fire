@@ -170,3 +170,120 @@ git remote rm origin
 
 
 
+
+改动server/index.js代码
+
+```js
+import Koa from 'koa'
+import { Nuxt, Builder } from 'nuxt'
+
+const host = process.env.HOST || '127.0.0.1'
+const port = process.env.PORT || 3000
+// 将start重新包装改成class形式
+
+class Server {
+  constructor() {
+    // 在服务器内部可以通过this.app 非常方便的访问到服务器对象
+    this.app = new Koa()
+    // this.useMiddleWare(this.app)
+  }
+  // 加载中间件
+  useMiddleWare(app) {
+
+  }
+  async start() {
+    // Import and Set Nuxt.js options
+    let config = require('../nuxt.config.js')
+    config.dev = !(this.app.env === 'production')
+    // Instantiate nuxt.js
+    const nuxt = new Nuxt(config)
+    // Build in development
+    if (config.dev) {
+      const builder = new Builder(nuxt)
+      await builder.build()
+    }
+
+    this.app.use(async (ctx, next) => {
+      await next()
+      ctx.status = 200 // koa defaults to 404 when it sees that status is unset
+      return new Promise((resolve, reject) => {
+        ctx.res.on('close', resolve)
+        ctx.res.on('finish', resolve)
+        nuxt.render(ctx.req, ctx.res, promise => {
+          // nuxt.render passes a rejected promise into callback on error.
+          promise.then(resolve).catch(reject)
+        })
+      })
+    })
+
+    this.app.listen(port, host)
+    console.log('Server listening on ' + host + ':' + port) // eslint-disable-line no-console
+  }
+}
+new Server().start()
+```
+微信公众号
+
+* 在项目中有一层专门用来接管消息的,放在中间件中 useMiddleWares(app)
+* 中间件不止一个 路由 bodyParse session
+* 正常的我们使用
+```js
+userMiddleWares(app) {
+  app.use(mid1)
+  app.use(mid2)
+  app.use(mid3)
+}
+``` 
+来加载中间件 但是这些会重复app.use
+我们会使用数组或者 map来管理
+
+可以借助于函数风格的Ramda 
+
+import R from 'ramda'
+
+核心设计理念就是
+
+* 数据不变
+* 函数无副作用
+* 结合函数自动柯立化让多个函数排列,数据变化传递变得比较容易
+
+```js
+import R from 'ramda'
+import { resolve } from 'path'
+const MIDDLEWARES = ['router']
+// 拿到当前完整路径
+const r = path => resolve(__dirname, path)
+// 中间件的个数不确定,顺序有一定的约束
+class Server {
+  // constructor (){
+  //   this.useMiddleWares(this.app)
+  // }
+  //   userMiddleWares () {
+  //     return R.map()(MIDDLEWARES)
+  // }
+  constructor (){
+    //可以在最右侧传入数组
+    this.useMiddleWares(this.app)(MIDDLEWARES)
+  }
+    userMiddleWares (app) {
+      return R.map(R.compose(
+        // 9. 总结: 通过R.map来解析数组的每一项值,交给了一个专门生成绝对路径的一个函数,然后这个路径交给require ,
+        // 然后这个require来加载这个模块,然后我们再对他传入这个app,让每个中间件都能拿到这个app对象,进行初始化的工作
+        // 8.我们通过R.map通过传入i(app),把当前app穿进去,从而初始化中间件中的每一个函数
+        R.map(i => i(app))
+      // 6. 整个这一行执行完成之返回去的就是一个绝对路径,然后交给一个require,来引入这个模块
+      // 7. 就可以拿到模块中暴露的函数
+        require,
+
+      // 1. R.compose 中间件的个数是不一定的,可以从右向左进行排列组合,右侧函数的返回结果都是左侧函数的输入参数
+      // 2. 所以我们可以倒着写
+      // 3. 每次传入的 MIDDLEWARES 通过这个R.map拿到的是一个个字符串
+      // 4. 可以将其转成一个标准的路径,+当前文件的名字
+      // 5. i => `resolve('./middlewares')/${i}`
+        i => `${r('./middlewares')}/${i}`
+
+      ))
+  }
+} 
+
+```
