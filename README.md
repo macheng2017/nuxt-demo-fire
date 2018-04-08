@@ -165,4 +165,8 @@ GraphQL 的优点 灵活,对于业务频繁改动的场景比较适合
 
 使用ngrok 穿透内网
 
+切换 远程仓库
+git remote rm origin
+
+
 
