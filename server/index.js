@@ -1,24 +1,36 @@
 import Koa from 'koa'
 import { Nuxt, Builder } from 'nuxt'
+import R from 'ramda'
+import { resolve } from 'path'
+const MIDDLEWARES = ['router']
+// 拿到当前完整路径
+const r = path => resolve(__dirname, path)
 
 const host = process.env.HOST || '127.0.0.1'
 const port = process.env.PORT || 3000
+
+// Import and Set Nuxt.js options
+let config = require('../nuxt.config.js')
+config.dev = !(process.env === 'production')
 // 将start重新包装改成class形式
 
 class Server {
   constructor() {
     // 在服务器内部可以通过this.app 非常方便的访问到服务器对象
     this.app = new Koa()
-    this.useMiddleWares(this.app)
+    this.useMiddleWares(this.app)(MIDDLEWARES)
   }
   // 加载中间件
   useMiddleWares(app) {
+    return R.map(R.compose(
+      R.map(i => i(app)),
+      require,
+      i => `${r('./middlewares')}/${i}`
+    ))
 
   }
   async start() {
-    // Import and Set Nuxt.js options
-    let config = require('../nuxt.config.js')
-    config.dev = !(this.app.env === 'production')
+
     // Instantiate nuxt.js
     const nuxt = new Nuxt(config)
     // Build in development

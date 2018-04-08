@@ -65,7 +65,7 @@ module.exports =
 /******/ 	__webpack_require__.p = "/";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 5);
+/******/ 	return __webpack_require__(__webpack_require__.s = 8);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -113,39 +113,68 @@ module.exports = {
 /* 1 */
 /***/ function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__(4);
+module.exports = __webpack_require__(7);
 
 
 /***/ },
 /* 2 */
 /***/ function(module, exports) {
 
-module.exports = require("koa");
+function webpackEmptyContext(req) {
+	throw new Error("Cannot find module '" + req + "'.");
+}
+webpackEmptyContext.keys = function() { return []; };
+webpackEmptyContext.resolve = webpackEmptyContext;
+module.exports = webpackEmptyContext;
+webpackEmptyContext.id = 2;
+
 
 /***/ },
 /* 3 */
 /***/ function(module, exports) {
 
-module.exports = require("nuxt");
+module.exports = require("koa");
 
 /***/ },
 /* 4 */
 /***/ function(module, exports) {
 
-module.exports = require("regenerator-runtime");
+module.exports = require("nuxt");
 
 /***/ },
 /* 5 */
+/***/ function(module, exports) {
+
+module.exports = require("path");
+
+/***/ },
+/* 6 */
+/***/ function(module, exports) {
+
+module.exports = require("ramda");
+
+/***/ },
+/* 7 */
+/***/ function(module, exports) {
+
+module.exports = require("regenerator-runtime");
+
+/***/ },
+/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
+/* WEBPACK VAR INJECTION */(function(__dirname) {Object.defineProperty(exports, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_E_myGitHub_fire_node_modules_babel_runtime_regenerator__ = __webpack_require__(1);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_E_myGitHub_fire_node_modules_babel_runtime_regenerator___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_E_myGitHub_fire_node_modules_babel_runtime_regenerator__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_koa__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_koa__ = __webpack_require__(3);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_koa___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_koa__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_nuxt__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_nuxt__ = __webpack_require__(4);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_nuxt___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2_nuxt__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_ramda__ = __webpack_require__(6);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_ramda___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_3_ramda__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4_path__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4_path___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_4_path__);
 
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -157,8 +186,19 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 
 
+
+var MIDDLEWARES = ['router'];
+// 拿到当前完整路径
+var r = function r(path) {
+  return __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_4_path__["resolve"])(__dirname, path);
+};
+
 var host = process.env.HOST || '127.0.0.1';
 var port = process.env.PORT || 3000;
+
+// Import and Set Nuxt.js options
+var config = __webpack_require__(0);
+config.dev = !(process.env === 'production');
 // 将start重新包装改成class形式
 
 var Server = function () {
@@ -167,43 +207,46 @@ var Server = function () {
 
     // 在服务器内部可以通过this.app 非常方便的访问到服务器对象
     this.app = new __WEBPACK_IMPORTED_MODULE_1_koa___default.a();
-    this.useMiddleWares(this.app);
+    this.useMiddleWares(this.app)(MIDDLEWARES);
   }
   // 加载中间件
 
 
   _createClass(Server, [{
     key: 'useMiddleWares',
-    value: function useMiddleWares(app) {}
+    value: function useMiddleWares(app) {
+      return __WEBPACK_IMPORTED_MODULE_3_ramda___default.a.map(__WEBPACK_IMPORTED_MODULE_3_ramda___default.a.compose(__WEBPACK_IMPORTED_MODULE_3_ramda___default.a.map(function (i) {
+        return i(app);
+      }), !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND'; throw e; }()), function (i) {
+        return r('./middlewares') + '/' + i;
+      }));
+    }
   }, {
     key: 'start',
     value: function () {
       var _ref = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_E_myGitHub_fire_node_modules_babel_runtime_regenerator___default.a.mark(function _callee2() {
         var _this = this;
 
-        var config, nuxt, builder;
+        var nuxt, builder;
         return __WEBPACK_IMPORTED_MODULE_0_E_myGitHub_fire_node_modules_babel_runtime_regenerator___default.a.wrap(function _callee2$(_context2) {
           while (1) {
             switch (_context2.prev = _context2.next) {
               case 0:
-                // Import and Set Nuxt.js options
-                config = __webpack_require__(0);
 
-                config.dev = !(this.app.env === 'production');
                 // Instantiate nuxt.js
                 nuxt = new __WEBPACK_IMPORTED_MODULE_2_nuxt__["Nuxt"](config);
                 // Build in development
 
                 if (!config.dev) {
-                  _context2.next = 7;
+                  _context2.next = 5;
                   break;
                 }
 
                 builder = new __WEBPACK_IMPORTED_MODULE_2_nuxt__["Builder"](nuxt);
-                _context2.next = 7;
+                _context2.next = 5;
                 return builder.build();
 
-              case 7:
+              case 5:
 
                 this.app.use(function () {
                   var _ref2 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_E_myGitHub_fire_node_modules_babel_runtime_regenerator___default.a.mark(function _callee(ctx, next) {
@@ -241,7 +284,7 @@ var Server = function () {
                 this.app.listen(port, host);
                 console.log('Server listening on ' + host + ':' + port); // eslint-disable-line no-console
 
-              case 10:
+              case 8:
               case 'end':
                 return _context2.stop();
             }
@@ -261,6 +304,7 @@ var Server = function () {
 }();
 
 new Server().start();
+/* WEBPACK VAR INJECTION */}.call(exports, "server"))
 
 /***/ }
 /******/ ]);

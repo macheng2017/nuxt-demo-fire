@@ -270,7 +270,7 @@ class Server {
         // 9. 总结: 通过R.map来解析数组的每一项值,交给了一个专门生成绝对路径的一个函数,然后这个路径交给require ,
         // 然后这个require来加载这个模块,然后我们再对他传入这个app,让每个中间件都能拿到这个app对象,进行初始化的工作
         // 8.我们通过R.map通过传入i(app),把当前app穿进去,从而初始化中间件中的每一个函数
-        R.map(i => i(app))
+        R.map(i => i(app)),
       // 6. 整个这一行执行完成之返回去的就是一个绝对路径,然后交给一个require,来引入这个模块
       // 7. 就可以拿到模块中暴露的函数
         require,
@@ -286,4 +286,103 @@ class Server {
   }
 } 
 
+```
+添加/server/middlewares/router.js
+```js
+import Router from 'koa-router'
+import config from '../config'
+import sha1 from 'sha1'
+
+export const router = app => {
+  const router = new Router()
+// 1.通过router.get/post 拿到微信服务器推送的请求 
+// 2. get拿到的是验证的请求
+// post拿到的是数据
+  router.get('/wechat-hear', (ctx, next) => {
+// 3. 我们接收微信服务器所推送的get请求我们可以接收到参数
+// 4. 以下是微信官方文档上约束的参数,签名,nonce, 时间戳,echostr
+  const token = config.wechat.token 
+  // 6. 通过配置文件获取微信公众号token,在server下新建一个config/index.js
+  /**
+   * export default {
+   *    wechat:{
+   *      token: 'xxx'
+   *    } 
+   * }
+   * */
+  // 7.引入config 文件
+  const {
+    signature,
+    nonce,
+    timestamp,
+    echostr
+  } = ctx.query
+
+// 5. 然后对参数进行排序加密 token 是微信公众号的token
+// 8. 进行排序
+    const str = [token, timestamp, nonce].sort().join('')
+    const sha = sha1(str)
+// 判断是否和微信服务器签名一致
+    if(sha === signature){
+
+    // 9. 设置返回内容
+    ctx.body = echostr
+    }eles {
+      cxt.body = 'Failed'
+    }    
+  })
+// 3. 我们可以先不管post请求先走通get
+  // router.post('/wechat-hear', (ctx, next){
+
+  // })
+  app.use(router.routers())
+  app.use(router.allowedMethods())
+}
+
+```
+
+安装库
+ramda
+sha1
+koa-router
+
+```js
+E:\myGitHub\fire\build\webpack:\server\index.js:23
+      require,
+      ^
+Error: Cannot find module "."
+```
+没有安装babel模块 没有配置好
+yarn add babel-preset-stage-3 -D 
+* 将其放入开发依赖列表当中 "devDependencies"
+
+yarn add babel-preset-latest-node -D
+
+在项目根目录下新建 启动文件
+
+start.js
+从其间接调用server/index.js 启动整个后台服务
+
+[ECMAScript 6 简介 - ECMAScript 6入门](http://es6.ruanyifeng.com/#docs/intro#Babel-转码器)
+
+下面的参数可以在上面的链接中找到
+
+```js
+require('babel-core/register')({
+  'presets': [
+    'stage-3',
+    'latest-node'
+  ]
+})
+// 通过babel的编译才能放心使用es6 的语法
+require('babel-polyfill')
+require('./server')
+```
+
+配置启动命令
+
+package.json
+
+```js
+dev": "backpack dev", --> nodemon -w ./server -w ./start.js --exec node ./start.js
 ```
