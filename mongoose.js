@@ -30,19 +30,30 @@ UserSchema.statics = {
   }
 }
 
-
+// 在UserSchema上添加自定义方法
+UserSchema.methods = {
+  async fetchUser(name) {
+    const user = await this.model('User').findOne({
+      name: name
+    }).exec()
+    return user
+  }
+}
 mongoose.model('User', UserSchema)
 
 // 测试
 const User = mongoose.model('User')
 ;(async () => {
-  console.log(await User.getUser('Vue SSR1'))
+  console.log(await User.getUser('Vue'))
+  const user = await User.findOne({name: 'Vue'}).exec()
+  const newUser = await user.fetchUser('Vue')
+  console.log(newUser)
   // const user = new User({
   //   name: 'Vue'
   // })
   // await user.save()
-  // const user = await User.getUser('Vue SSR')
-  // user.name = 'Vue SSR1'
-  // await user.save()
+  // // const user = await User.getUser('Vue SSR')
+  // // user.name = 'Vue SSR1'
+  // // await user.save()
   // console.log(await User.getUser('Vue'))
 })()

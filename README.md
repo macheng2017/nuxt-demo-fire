@@ -56,7 +56,7 @@ mongoose.Promise = Promise
 // 开启debug 这样可以看到操作日志
 mongoose.set('debug', true)
 // 老版写法 新版的createConnection
-mongoose.connect('mongodb://localhost/xxo', {
+mongoose.connect('mongodb://localhost/test', {
   useMongoClient: true
 })
 // open事件绑定,在连接的时候给个提示
@@ -140,5 +140,29 @@ UserSchema.statics = {
 ```
 
 * UserSchema.statics [可以直接在Schema上直接添加静态方法](http://mongoosejs.com/docs/api.html#schema_Schema-static)
-* UserSchema.method  可以对实例添加一些方法,查询数据库
+* UserSchema.methods  可以对实例添加一些方法,查询数据库
+
+
+```js
+UserSchema.methods = {
+  async fetchUser(name) {
+    const user = await this.model('User').findOne({
+      name: name
+    }).exec()
+    return user
+  }
+}
+```
+* 出现错误:最后找到的原因是--数据库没有数据;先检查数据库有没有数据
+
+Restful API 和 GraphQL
+
+GraphQL 的优点 灵活,对于业务频繁改动的场景比较适合
+
+使用github GraphQL API
+
+[GraphQL API Explorer | GitHub Developer Guide]( https://developer.github.com/v4/explorer/)
+
+使用ngrok 穿透内网
+
 
