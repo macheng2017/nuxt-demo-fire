@@ -422,3 +422,302 @@ require('./server')
 
 
 
+1. 新增 middlewares/database.js
+
+```js
+  import { resolve } from 'path'
+  import mongoose from 'mongoose'
+  import config from 'config'
+  // 1. 从外部服务器拿到传递进来的实例
+  export const database = app =>{
+    // 2. 在本地开发的时候设置为true,这样可以看到存储时的一些日志
+    mongoose.set('debug', true)
+    // 3. 从外部配置文件中读取
+    mongoose.connect(config.db)
+  }
+    // 4. 在连接中断的时候重新链接
+    mongoose.connection.on('disconnected', () => {
+      mongoose.connect(config.db)
+
+    })
+    // 5.在出错的时候给出报警日志
+    mongoose.connection.on('error', err => {
+      console.error(err)
+    })
+    // 6. 当数据库打开的时候,用一个异步函数,将来可以做一些异步的处理现在简单打印
+    mongoose.connection.on('open', async => {
+      console.log('Connected to MongoDB', config.db)
+    })
+// 7. 配置config
+//add
+ + db: 'mongodb://localhost/ice',
+
+```
+
+对schema初始化
+
+```js
+// 1.把所有的model 读出来然后加载
+import fs form 'fs'
+// 3.新建目录 /server/database/schema 
+const models = resolve('__dirname', '../database/schema')
+// 2. 同步读入模型文件并过滤,匹配以.s结尾的文件
+fs.readdirSync(models)
+  .filter(file => ~file.search(/^[^\.].*js$/))
+  .forEach(file => require(resolve(models, file)))
+
+
+```
+## 新增token.js 用来存放全局票据
+server/database/schema/token.js
+
+```js
+const mongoose = require('mongoose')
+const Schema = mogoose.Schema
+
+// 1.新建一张表,存放全局票据
+const TokenSchema = new mongoose.Schema({
+  name: String,
+  token: String,
+  expires_in: Number,
+  meta: {
+    // 创建的时候记录
+    createdAt: {
+      type: Date,
+      default: Date.now()
+    },
+    // 在更新的时候记录下
+    updatedAt: {
+      type: Date,
+      default: Date.now()
+    }
+  }
+})
+// 2. 保存前使用hook先经过中间件自动处理
+TokenSchema.pre('save', function (next) {
+  // 如果是新增的数据,则更新 createAt 与 updatedAt时间
+  if (this.isNew) {
+    this.meta.createdAt = this.meta.updatedAt = Date.now()
+  // 如果不是新增数据,则只更新updatedAt
+  }else{
+    this.meta.updatedAt = Date.now()
+  }
+  next()
+})
+// 3. 这个预处理相当于mongoose中的中间件在执行保存操作之前,先执行下数据的时间更新
+// 别忘了next()
+
+// 4. 然后对这个TokenSchema新增静态方法,是为了让model直接调用的
+TokenSchema.statics = {
+  // 5. 获取token
+  async getAccessToken() {
+    const token = await this.findOne({
+      // 由于以后token比较多所以,直接将表字段改成token而不再用access_token
+      name: 'access_token'
+    }).exec()
+    if (token && token.token ) {
+      token.access_token = token.token
+    }
+
+    return token
+  },
+  // 6. 保存
+  async saveAccessToken(data) {
+    let token = await this.findOne({
+      name: 'access_token'
+    }).exec()
+    // 判断是否找到,如果找到之前存过,不会新增,直接修改
+    if (token) {
+      token.token = data.access_token
+      token.expire_in = data.expires_in
+    } else {
+      // 新增数据
+      token = new Token({
+        name: 'access_token',
+        token: data.access_token,
+        expires_in: data.expires_in
+      })
+    }
+  await token.save()
+  return data
+  }
+}
+// 前面我们用到了new Token, 拿到TokenSchema 的数据模型
+const Token =  mongoose.model('Token', TokenSchema)
+```
+
+### 在server/index.js当中 中间件数组中加入database.js中间件
+
+const MIDDLEWARES = ['database','router']
+
+
+## access_token 获取
+
+伪代码
+
+使用http请求的库
+request 请求官方的地址 apiurl
+
+微信请求的一个构造函数,所有和微信请求相关的功能都放到里面来
+
+## 新增 server/wechat-lib/index.js
+
+微信异步场景的入口文件,在这里我们需要管理很多的微信api地址
+首先实现框架代码
+
+在写复杂一点的构造函数的时候,先把主要的api或者说主要的方法罗列出来,然后再去细化
+
+```js
+import request from 'request-promise'
+
+class Wechat {
+  // 1.j接收一些配置项,token key 
+  constructor(opts){
+
+  }
+  // 所有异步函数,通过request方法统一管理
+
+  // 发送请求的
+  async request (options){
+    const response = await request(options)
+
+    return response
+  }
+  // 2. 获取token
+  async fetchAccessToken () {
+    // 判断是否过期,如果过期重新请求
+    if (isValid(data)) {
+      return await this.updateAccessToken()
+    }
+  }
+  // 3. 更新token
+  async updateAccessToken () {
+
+  }
+}
+
+```
+
+安装库
+yarn add request-promise
+[Object.assign()用法](https://blog.csdn.net/waiterwaiter/article/details/50267787)
+```js
+// 1. 声明这个api ,存放具体的地址
+const base = 'https://api.weixin.qq.com/cgi-bin/'
+const api = {
+  accessToken: base + 'token?grant_type=client_credential'
+}
+// 2. 现将这个参数去掉&appid=APPID&secret=APPSECRET 
+// 一定要按照文档的参数顺序来传递参数
+export default class Wechat {
+  constructor(opts){
+    // 3. 同过assign拿到一个新的对象why? 这样操作一遍不还是以前的那个对象吗?有意义吗?
+    this.opts = Object.assign({}, opts)
+
+    this.appID = opts.appID
+    this.appSecret = opts.appSecret
+    //4. 获取token的外部方法
+    this.getAccessToken = opts.getAccessToken
+    this.saveAccessToken = opts.saveAccessToken
+    //5.  在实例创建的时候获取这个token
+    this.fetchAccessToken()
+  }
+  // 10 
+   async request (options){
+     //11 使用object.assign 深copy 并'拼接'一个对象
+     options = Object.assign({}, options, {json: true})
+     // 12 捕获异常
+     try {
+       const response = await request(options)
+       console.log(response)
+       return response
+     } catch (error) {
+       // 13. 先简单打印一下便于开发,随后再做处理
+       console.error(error)
+     }
+
+    return response
+  }
+
+async fetchAccessToken () {
+  // 6. 先拿到当前的token 这个getAccessToken() 就是外部的方法可能是读了本地的文件,也可能是发// 了一个第三方api的请求,还可能是从数据库中查询,取决于怎么管理这个token
+  const data = await this.getAccessToken()
+  // 7.如果其中的data失效或者不合法,则重新更新token
+    if (!this.isValidAccessToken(data)){
+      data = await this.updateAccessToken()
+    }
+    await this.saveAccessToken(data)
+    return data
+  }
+  // 9.
+  async updateAccessToken () {
+    const url = api.accessToken + '&appid' + this.appID + '&secret' + this.appSecret
+    // 从微信服务器获取accessToken
+    const data = await this.request({url: url})
+    const now = (new Date().getTime())
+    // 将过期时间减去20s,让其提前获取新的token
+    const expiresIn = now + (data.expires_in - 20) * 1000
+    data.expires_in = expiresIn
+    return data
+  }
+  // 8. 判断是token否有效
+  isValidAccessToken(data) {
+    // 如果data本身就是null或者undefined 
+    if (!data || !data.access_token || !data.expires_in) {
+      return false
+    }
+    // 获取过期时间
+    const expiresIn = data.expires_in
+    // 当前时间
+    const now = (new Date().getTime())
+
+    if (now < expiresIn) {
+      return true
+    } else {
+      return false
+    }
+  }
+}
+```
+
+## 调用位置 
+
+在server上 server/wechat/index.js
+
+```js
+// 在这里对微信异步场景进行初始化
+import mongoose from 'mongoose'
+import config from '../config'
+import Wechat from '../wechat-lib'
+
+const Token = mongoose.model('Token')
+
+// 配置项
+
+const wechatConfig = {
+  wechat: {
+    appID: config.wechat.appID,
+    appSecret: config.wechat.appSecret,
+    token: config.wechat.token,
+    getAccessToken: async () => await Token.getAccessToken(),
+    saveAccessToken: async (data) => await Token.saveAccessToken(data)
+  }
+}
+// 将其暴露出去方便外部调用
+export const getWechat = () => {
+
+  const wechatClient = new Wechat(wechatConfig.wechat)
+  return wechatClient
+}
+
+// 测试
+
+getWechat() 
+
+// 作用: 生成wechat实例,在生成的时候传递进去一个配置参数wechatConfig,
+// 包括外部存储/查询token的方法 
+```
+
+到router中引入并测试
+
+等到数据库连接之后在做微信的初始化

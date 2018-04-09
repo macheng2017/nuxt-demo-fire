@@ -2,7 +2,7 @@ import Koa from 'koa'
 import { Nuxt, Builder } from 'nuxt'
 import R from 'ramda'
 import { resolve } from 'path'
-const MIDDLEWARES = ['router']
+const MIDDLEWARES = ['database', 'router']
 // 拿到当前完整路径
 const r = path => resolve(__dirname, path)
 
