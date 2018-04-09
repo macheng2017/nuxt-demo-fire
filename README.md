@@ -386,3 +386,39 @@ package.json
 ```js
 dev": "backpack dev", --> nodemon -w ./server -w ./start.js --exec node ./start.js
 ```
+
+https://github.com/christophehurpeau/babel-preset-latest-node
+
+
+卡在这里:
+
+
+
+```js
+Error: Preset latest-node 'target' option must one of 6, 6.5, 7, 7.6, 8, 8.3, current.
+// 修改后的配置
+require('babel-core/register')({
+  'presets': [
+    'stage-3',
+    ['latest-node',
+     { 'target': 'current' }
+    ]
+  ]
+})
+// 通过babel的编译才能放心使用es6 的语法
+require('babel-polyfill')
+require('./server')
+
+```
+
+总结:
+卡在这里的原因
+
+1. 没有读懂错误信息的意思/没有反复思考错误信息
+2. 没有按照以往的总结按照顺序排查错误
+3. 读懂错误信息 -> 定位位置(插件出错应该在github中搜索该插件正确配置) -> 根据经验尝试修改 -> Google错误信息
+
+## part2 通过mongoose构建全局票据 access_token
+
+
+
