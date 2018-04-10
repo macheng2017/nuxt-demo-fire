@@ -19,17 +19,23 @@ const TokenSchema = new Schema({
 
 TokenSchema.pre('save', function (next) {
   if (this.isNew) {
-    this.meat.createdAt = this.meta.updatedAt = Date.now()
+    this.meta.createdAt = this.meta.updatedAt = Date.now()
   } else {
-    this.mate.createdAt = Date.now()
+    this.meta.updatedAt = Date.now()
   }
+  next()
 })
 
-TokenSchema.static = {
+TokenSchema.statics = {
   async getAccessToken() {
     const token = await this.findOne({
       name: 'access_token'
     }).exec()
+
+    if (token && token.token) {
+      token.access_token = token.token
+    }
+
     return token
   },
   async saveAccessToken(data) {
@@ -46,7 +52,10 @@ TokenSchema.static = {
         expires_in: data.expires_in
       })
     }
+
     await token.save()
+    .then(product => console.log(product))
+    .catch(err => console.log(err))
     return data
   }
 }

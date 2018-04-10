@@ -8,9 +8,9 @@ const wechatConfig = {
   wechat: {
     appID: config.wechat.appID,
     appSecret: config.wechat.appSecret,
-    token: config.wechat.appSecret,
+    token: config.wechat.token,
     getAccessToken: async () => await Token.getAccessToken(),
-    saveAccessToken: async () => await Token.saveAccessToken(data)
+    saveAccessToken: async (data) => await Token.saveAccessToken(data)
   }
 }
 

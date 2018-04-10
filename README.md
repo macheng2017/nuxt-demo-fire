@@ -641,7 +641,7 @@ export default class Wechat {
 
 async fetchAccessToken () {
   // 6. 先拿到当前的token 这个getAccessToken() 就是外部的方法可能是读了本地的文件,也可能是发// 了一个第三方api的请求,还可能是从数据库中查询,取决于怎么管理这个token
-  const data = await this.getAccessToken()
+  let data = await this.getAccessToken()
   // 7.如果其中的data失效或者不合法,则重新更新token
     if (!this.isValidAccessToken(data)){
       data = await this.updateAccessToken()
@@ -718,6 +718,41 @@ getWechat()
 // 包括外部存储/查询token的方法 
 ```
 
-到router中引入并测试
+server/middlewares/到router中引入并测试
 
 等到数据库连接之后在做微信的初始化
+
+requiret('../wechat') 时机是整个项目跑起来对外提供服务的时候
+
+
+遇到一个巨坑的错误:
+ 
+ * token.js当中的 忘了写next(),导致只有保存前的预处理动作,却没有保存动作,而且还不报错
+
+```js
+TokenSchema.pre('save', function (next) {
+  // 如果是新增的数据,则更新 createAt 与 updatedAt时间
+  if (this.isNew) {
+    this.meta.createdAt = this.meta.updatedAt = Date.now()
+  // 如果不是新增数据,则只更新updatedAt
+  }else{
+    this.meta.updatedAt = Date.now()
+  }
+  next()
+})
+```
+
+* 遇到这类问题,先想想那个动作完成了,紧接着什么动作未完成.
+
+
+## 为微信消息实现一个中间件
+结合access_token 来为微信消息进行回复,中间件主要是在路由这一层,
+当一个请求进来后,在这个中间件中进行解析
+将请求进行分析,并回复
+
+无论微信过来的请求是 get/post 都应该对参数进行字典排序,加密,然后进行比对,成功后再进行数据分析
+
+router.js
+
+可以将get/post请求处理写成一个 router.all()来处理
+

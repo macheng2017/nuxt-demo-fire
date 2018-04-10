@@ -21,20 +21,28 @@ export default class Wechat {
   }
 
   async fetchAccessToken() {
-    const data = await this.getAccessToken()
+    let data = await this.getAccessToken()
+    console.log('isValidAccessToken=' + this.isValidAccessToken(data))
     if (!this.isValidAccessToken(data)) {
       data = await this.updateAccessToken()
     }
     await this.saveAccessToken(data)
+    console.log('..............+ ' + data)
     return data
   }
 
   async updateAccessToken() {
-    const url = api.accessToken + '&appid' + this.appID + '&secret' + this.appSecret
-    const data = await this.request({url: url})
+    const url = api.accessToken + '&appid=' + this.appID + '&secret=' + this.appSecret
+    console.log(url)
+    let data = await this.request({url: url})
+    console.log('-----------' + data)
+    data = JSON.parse(data)
     const now = (new Date().getTime())
     const expiresIn = now + (data.expires_in - 20) * 1000
+    console.log('data.expires_in = ' + data.expires_in)
+    console.log('**********' + data + 'now= ' + now + ' expiresIn= ' + expiresIn)
     data.expires_in = expiresIn
+    console.log('+++++++++++' + data)
     return data
   }
 

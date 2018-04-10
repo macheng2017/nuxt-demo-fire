@@ -3,15 +3,14 @@ import { Nuxt, Builder } from 'nuxt'
 import R from 'ramda'
 import { resolve } from 'path'
 const MIDDLEWARES = ['database', 'router']
-// 拿到当前完整路径
-const r = path => resolve(__dirname, path)
-
-const host = process.env.HOST || '127.0.0.1'
-const port = process.env.PORT || 3000
-
 // Import and Set Nuxt.js options
 let config = require('../nuxt.config.js')
 config.dev = !(process.env === 'production')
+// 拿到当前完整路径
+const r = path => resolve(__dirname, path)
+const host = process.env.HOST || '127.0.0.1'
+const port = process.env.PORT || 3000
+
 // 将start重新包装改成class形式
 
 class Server {
@@ -27,10 +26,8 @@ class Server {
       require,
       i => `${r('./middlewares')}/${i}`
     ))
-
   }
   async start() {
-
     // Instantiate nuxt.js
     const nuxt = new Nuxt(config)
     // Build in development
