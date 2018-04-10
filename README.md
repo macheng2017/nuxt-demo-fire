@@ -882,3 +882,21 @@ export default function(opts, replay) {
 7. 然后在拿到回复策略里面的处理后的内容,拿到之前的message
 8. 通过工具函数构建xml数据
 9. 返回微信服务器
+
+
+## 实现util.js 
+新建 util.js
+
+```js
+import xml2js from 'xml2js'
+// 解析xml
+export function xml2js (xml) {
+  return new Promise ((resolve, reject) => {
+    xml2js.parseString(xml, {trim: true}, (err, content) => {
+      if (err) reject(err)
+      else resolve(content)
+    })
+  })
+}
+```
+ 

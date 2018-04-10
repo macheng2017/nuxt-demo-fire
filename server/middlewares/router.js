@@ -4,9 +4,8 @@ import sha1 from 'sha1'
 
 export const router = app => {
   const router = new Router()
-  router.all('/wechat-hear',
-   (ctx, next) => {
-    // require('../wechat')
+  router.all('/wechat-hear', (ctx, next) => {
+    require('../wechat')
     const token = config.wechat.token
     const {
       signature,
