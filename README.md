@@ -756,3 +756,129 @@ router.js
 
 可以将get/post请求处理写成一个 router.all()来处理
 
+写一个中间件
+wechatMiddle(opts)
+
+```js
+import reply from  '../wechat/reply'
+  router.all('/wechat-hear',
+  // opts 描述了微信公众号的 key secret token 外部获取的方式
+  // reply 传入一个回复的策略 
+  // 将配置项和回复策略都交给中间件进行相应的处理,这样路由比较简洁干净
+  wechatMiddle(config.wechat, reply)
+  (ctx, next) => {
+    // require('../wechat')
+    const token = config.wechat.token
+  //...
+  app.use(router.routes())
+  app.use(router.allowedMethods())
+}
+```
+
+将这一部分代码剪切,放到外部
+```js
+   (ctx, next) => {
+    // require('../wechat')
+    const token = config.wechat.token
+    const {
+      signature,
+      nonce,
+      timestamp,
+      echostr
+    } = ctx.query
+    const str = [token, timestamp, nonce].sort().join('')
+    const sha = sha1(str)
+    console.log(sha === signature)
+    if (sha === signature) {
+      ctx.body = echostr
+    } else {
+      ctx.body = 'Failed'
+    }
+  })
+```
+
+## 新建server/wechat-lib/middleware.js 微信消息中间件
+
+```js
+export default function(opts, replay) {
+  // 一个koa中间件结构
+  return async function wechatMiddle(ctx, next) {
+
+  }
+}
+```
+把刚刚剪切的代码粘进去
+```js
+import sha1 from 'sha1'
+// 这个模块可以拿到http请求的整个数据包
+import getRawBody from 'raw-body'
+// 引入整个工具函数,所有方法
+import * as util from './util'
+
+
+export default function(opts, replay) {
+  // 一个koa中间件结构
+  return async function wechatMiddle(ctx, next) {
+    const token = opts.token
+    const {
+      signature,
+      nonce,
+      timestamp,
+      echostr
+    } = ctx.query
+    const str = [token, timestamp, nonce].sort().join('')
+    const sha = sha1(str)
+// 1. 由于我们是通过 reouter.all()方式进来的,需要对请求的方法做判断
+
+  if (ctx.method === 'GET') {
+    if (sha === signature) {
+      ctx.body = echostr
+    } else {
+      ctx.body = 'Failed'
+    }
+  } else if(ctx.method === 'post') {
+    // 2. post请求,还是需要先判断签名是否正确
+     if (sha !== signature) {
+       ctx.body = 'Failed'
+       return false
+     }
+    // 3. 先拿到整个请求的数据包
+     // getRawBody原始数据通过 ctx上的req ctx.req 并加上约束
+    const data = await getRawBody(ctx.req, {
+      length: ctx.length,
+      limit: '1mb',
+      encoding: ctx.charset
+    }) 
+    // 4. 拿到整个data先对这个data进行解析,因为它是xml格式的
+    const content = await util.parseXML(data)
+    // 5. 拿到整个xml数据之后,希望能解析成json格式,这样才能拿到对应的key,value
+    const message = util.formatMessage(content.xml)
+    // 6. 解析之后的message可以将其挂到ctx上面
+    // 这样在后面的代码单元就可以访问到ctx.weixin了
+    ctx.weixin = message
+    // 7. 将上下文转义 通过await 异步让reply内部执行,在执行中可以调用到上下文
+    await reply.apply(ctx, [ctx, next])
+    // 8. 执行之后就可以拿到回复内容了,reply是回复策略
+    const replyBody = ctx.body
+    const msg = ctx.weixin
+    // 9. 我们通过replyBody 和 msg 来构建用来回复给微信服务器的xml数据
+    ctx.xml = util.tpl(replyBody, msg)
+    ctx.status = 200 
+    // 设置回复的类型
+    ctx.type = 'application/xml'
+    // 将其交给body
+    ctx.body = xml
+  }
+  }
+}
+```
+消息中间件的流程
+1. 拿到所有参数,进行字典排序,加密
+2. 如果符合加密规则,进而拿到整个http请求的数据包
+3. 然后对这个数据包进行解析,拿到里面原始的xml数据
+4. 通过工具函数对xml数据进行分析,将其解析成一个js对象
+5. 将解析后的对象挂到ctx上面
+6. 然后把整个的控制权交出去,让我们的回复策略,根据解析后的内容也就是message,进行具体的处理
+7. 然后在拿到回复策略里面的处理后的内容,拿到之前的message
+8. 通过工具函数构建xml数据
+9. 返回微信服务器
