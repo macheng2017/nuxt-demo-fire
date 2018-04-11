@@ -40,14 +40,14 @@ export default function (opts, reply) {
       })
       const content = await util.parseXML(data)
       console.log('content' + JSON.stringify(content))
-      // const message =  util.formatMessage(content.xml)
-      // ctx.weixin = message
+      const message = util.formatMessage(content.xml)
+      ctx.weixin = message
       ctx.weixin = {}
       await reply.apply(ctx, [ctx, next])
       const replyBody = ctx.body
       const msg = ctx.weixin
       console.log(replyBody)
-      // ctx.xml = util.tpl(replyBody, msg)
+      ctx.xml = util.tpl(replyBody, msg)
       const xml = `<xml>
           <ToUserName>
           <![CDATA[${content.xml.FromUserName[0]}]]>
