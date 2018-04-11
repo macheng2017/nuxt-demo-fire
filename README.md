@@ -856,7 +856,7 @@ export default function(opts, replay) {
     // 6. 解析之后的message可以将其挂到ctx上面
     // 这样在后面的代码单元就可以访问到ctx.weixin了
     ctx.weixin = message
-    // 7. 将上下文转义 通过await 异步让reply内部执行,在执行中可以调用到上下文
+    // 7. 将控制权交到reply 通过await 异步让reply内部执行,在执行中可以调用到上下文
     await reply.apply(ctx, [ctx, next])
     // 8. 执行之后就可以拿到回复内容了,reply是回复策略
     const replyBody = ctx.body
@@ -899,4 +899,104 @@ export function xml2js (xml) {
   })
 }
 ```
- 
+## 新建 wechat/reply.js回复策略
+
+```js
+const tip = ''
+export default async (ctx, next) => {
+  const message = ctx.weixin
+  console.log(message)
+  ctx.body = tip
+
+}
+
+```
+
+测试下
+
+微信公共号给的文档真坑
+
+```xml
+<xml> <ToUserName>< ![CDATA[toUser] ]></ToUserName> <FromUserName>< ![CDATA[fromUser] ]></FromUserName> <CreateTime>12345678</CreateTime> <MsgType>< ![CDATA[text] ]></MsgType> <Content>< ![CDATA[你好] ]></Content> </xml>
+```
+
+< ![CDATA[toUser] ]> 这个 CDATA 太坑了,写成这样肯定死活不过
+
+* 正确用法去掉空格
+
+ ```js
+ import sha1 from 'sha1'
+import getRawBody from 'raw-body'
+import * as util from './util'
+
+export default function (opts, reply) {
+  return async function wechatMiddle(ctx, next) {
+    const token = opts.token
+    const {
+      signature,
+      nonce,
+      timestamp,
+      echostr
+    } = ctx.query
+    const str = [token, timestamp, nonce].sort().join('')
+    const sha = sha1(str)
+    console.log(sha === signature)
+    if (sha === signature) {
+      ctx.body = echostr
+    } else {
+      ctx.body = 'Failed'
+    }
+
+// part2
+    if (ctx.method === 'GET') {
+      if (sha === signature) {
+        ctx.body = echostr
+      } else {
+        ctx.body = 'Failed'
+      }
+    } else if (ctx.method === 'POST') {
+      if (sha !== signature) {
+        ctx.body = 'Failed'
+        return false
+      }
+
+      const data = await getRawBody(ctx.req, {
+        length: ctx.length,
+        limit: '1mb',
+        encoding: ctx.charset
+      })
+      const content = await util.parseXML(data)
+      console.log('content' + JSON.stringify(content))
+      // const message =  util.formatMessage(content.xml)
+      // ctx.weixin = message
+      ctx.weixin = {}
+      await reply.apply(ctx, [ctx, next])
+      const replyBody = ctx.body
+      const msg = ctx.weixin
+      console.log(replyBody)
+      // ctx.xml = util.tpl(replyBody, msg)
+      const xml = `<xml>
+          <ToUserName>
+          <![CDATA[${content.xml.FromUserName[0]}]]>
+          </ToUserName>
+          <FromUserName>
+          <![CDATA[${content.xml.ToUserName[0]}]]>
+          </FromUserName>
+          <CreateTime>12345678</CreateTime>
+          <MsgType><![CDATA[text]]></MsgType>
+          <Content>
+          <![CDATA[${replyBody}]]>
+          </Content>
+      </xml>`
+      console.log(xml)
+      ctx.type = 'application/xml'
+      ctx.status = 200
+      ctx.body = xml
+    }
+  }
+}
+```
+## [各种消息模板的封装](./readme/part3.md)
+
+
+
