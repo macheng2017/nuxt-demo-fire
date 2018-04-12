@@ -45,7 +45,9 @@ export {
   parseXML
 }
 ```
-* 
+*  const message = util.formatMessage(content.xml)
+* // const message = JSON.parse(JSON.stringify(content)).xml
+* 使用上面第二种方式可以转换xml2json
 
 [Object.keys() - JavaScript | MDN](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Object/keys)
 
@@ -227,9 +229,26 @@ export default async (ctx, next) => {
     }
   } else if (message.MsgType === 'link') {
     ctx.body = {
-      title: message.title,
+      title: message.Title,
       msgType: 'link',
       mediaId: message.MediaId
     }
   }
+```
+
+
+```js
+// 关注/取消关注
+if (message.MsgType === 'event') {
+  if(message.Event === 'subscribe') {
+    ctx.body = tip
+  } else if (message.Event === 'unsubscribe') {
+    console.log('取关!')
+    // 上报地理位置信息
+  } else if (message.Event === 'LOCATION') {
+    ctx.body = message.Latitude + ' : ' + message.Longitude
+  }
+}
+
+
 ```
