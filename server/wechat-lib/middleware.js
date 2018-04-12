@@ -40,27 +40,15 @@ export default function (opts, reply) {
       })
       const content = await util.parseXML(data)
       console.log('content' + JSON.stringify(content))
+      // content.xml 不是一个文件,而是content的xml属性
       const message = util.formatMessage(content.xml)
+      // const message = JSON.parse(JSON.stringify(content)).xml
       ctx.weixin = message
-      ctx.weixin = {}
       await reply.apply(ctx, [ctx, next])
       const replyBody = ctx.body
       const msg = ctx.weixin
       console.log(replyBody)
-      ctx.xml = util.tpl(replyBody, msg)
-      const xml = `<xml>
-          <ToUserName>
-          <![CDATA[${content.xml.FromUserName[0]}]]>
-          </ToUserName>
-          <FromUserName>
-          <![CDATA[${content.xml.ToUserName[0]}]]>
-          </FromUserName>
-          <CreateTime>12345678</CreateTime>
-          <MsgType><![CDATA[text]]></MsgType>
-          <Content>
-          <![CDATA[${replyBody}]]>
-          </Content>
-      </xml>`
+      const xml = util.tpl(replyBody, msg)
       console.log(xml)
       ctx.type = 'application/xml'
       ctx.status = 200

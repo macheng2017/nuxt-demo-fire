@@ -1,4 +1,5 @@
 import xml2js from 'xml2js'
+import template from './tpl'
 
 function parseXML(xml) {
   return new Promise((resolve, reject) => {
@@ -49,8 +50,26 @@ function formatMessage(result) {
   return message
 }
 
-function 
-
+function tpl(content, message) {
+  let type = 'text'
+  if (Array.isArray(content)) {
+    type = 'news'
+  }
+  if (!content) {
+    content = 'Empty news'
+  }
+  if (content && content.type) {
+    type = 'text'
+  }
+  let info = Object.assign({}, {
+    content: content,
+    createTime: new Date().getTime(),
+    msgType: type,
+    toUserName: message.FromUserName,
+    fromUserName: message.ToUserName
+  })
+  return template(info)
+}
 
 export {
   formatMessage,

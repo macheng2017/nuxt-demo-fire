@@ -45,6 +45,8 @@ export {
   parseXML
 }
 ```
+* 
+
 [Object.keys() - JavaScript | MDN](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Object/keys)
 
 使用插件即可
@@ -53,12 +55,11 @@ Leonidas-from-XIV/node-xml2js: XML to JavaScript object converter.  https://gith
 
 
 ```js
-import template from '../tpl'
+import template from './tpl'
 // content 回复内容
 // message 解析后的消息
 function tpl (content, message) {
   let type = 'text'
-  let info = {}
   // 判断是否是一个数组
   if (Array.isArray(content)) {
     // 将类型变更为news
@@ -73,10 +74,10 @@ function tpl (content, message) {
     type = 'text'
   }
   // 构建消息对象
-  let info = Object.assign({}, {
+  info = Object.assign({}, {
     content: content,
     createTime: new Date().getTime(),
-    msgType: content.Type || 'text'
+    msgType: type,
     toUserName: message.FromUserName,
     fromUserName: message.ToUserName
   })
@@ -91,8 +92,7 @@ function tpl (content, message) {
 
 ```js
 import ejs from 'ejs'
-const tpl = il.tpl(replyBody, msg)
-      const xml = `<xml>
+      const tpl = `<xml>
           <ToUserName>
           <![CDATA[<%= toUserName %>]]>
           </ToUserName>
@@ -109,63 +109,127 @@ const tpl = il.tpl(replyBody, msg)
           <% } else if (msgType === 'image') { %>
           <Image>
             <MediaId>
-                < ![CDATA[<%= content.mediaId %>] ]>
+                <![CDATA[<%= content.mediaId %>]]>
             </MediaId>
           </Image>
-          <% } else if (msgType === 'image') { %>
+          <% } else if (msgType === 'voice') { %>
             <Voice>
-              <MediaId>< ![CDATA[<%= content.mediaId %>] ]></MediaId>
+              <MediaId><![CDATA[<%= content.mediaId %>]]></MediaId>
             </Voice>
-          <% } else if (msgType === 'image') { %>
+          <% } else if (msgType === 'video') { %>
             <Video>
             <MediaId>
               <![CDATA[<%= content.mediaId %>]]>
             </MediaId>
             <Title>
-              <![CDATA[title]]>
+              <![CDATA[<%= content.title %>]]>
             </Title>
             <Description>
-              <![CDATA[description]]>
+              <![CDATA[<%= content.description %>]]>
             </Description>
             </Video>
-        <% } else if (msgType === 'image') { %>
+        <% } else if (msgType === 'music') { %>
           <Music>
               <Title>
-                <![CDATA[TITLE]]>
+                <![CDATA[<%= content.title %>]]>
               </Title>
               <Description>
-                  <![CDATA[DESCRIPTION]]>
+                  <![CDATA[<%= content.description %>]]>
               </Description>
               <MusicUrl>
-                  <![CDATA[MUSIC_Url]]>
+                  <![CDATA[<%= content.musicUrl %>]]>
               </MusicUrl>
               <HQMusicUrl>
-                  <![CDATA[HQ_MUSIC_Url]]>
+                  <![CDATA[<%= content.hqMusicUrl %>]]>
               </HQMusicUrl>
               <ThumbMediaId>
-                  <![CDATA[<%= content.mediaId %>]]>
+                  <![CDATA[<%= content.thumbMediaId %>]]>
               </ThumbMediaId>
           </Music>
-      <% } else if (msgType === 'image') { %>
-          <ArticleCount>2</ArticleCount>
+      <% } else if (msgType === 'news') { %>
+          <ArticleCount><%= content.length %></ArticleCount>
+
           <Articles>
-              <item>
-                  <Title>
-                      <![CDATA[title1]]>
-                  </Title>
-                  <Description>
-                      <![CDATA[description1]]>
-                  </Description>
-                      <PicUrl>
-                          <![CDATA[picurl]]>
-                      </PicUrl>
-                  <Url>
-                      <![CDATA[url]]>
-                  </Url>
-              </item>
+            <% content.forEatch(function(item){ %>
+                <item>
+                    <Title>
+                        <![CDATA[<%= item.title %>]]>
+                    </Title>
+                    <Description>
+                        <![CDATA[<%= item.description %>]]>
+                    </Description>
+                        <PicUrl>
+                            <![CDATA[<%= item.picUrl %>]]>
+                        </PicUrl>
+                    <Url>
+                        <![CDATA[<%= item.url %>]]>
+                    </Url>
+                </item>
+           <% }) %>
+
            </Articles>
-      <% } else if (msgType === 'image') { %>
+      <% } %>
 
       </xml>`
 
 // 不同模板切换通过type来判断
+
+// 模板声明好了之后需要将模板编译一下
+
+const compiled = ejs.compile(tpl)
+
+export default compiled
+```
+## part4.2 接收微信普通消息
+
+
+文件位置: /server/wechat/reply.js
+
+```js
+const tip = '欢迎来到河间地!\n\n<a href="http://www.baidu.com">传送</a>'
+export default async (ctx, next) => {
+  const message = ctx.weixin
+  console.log(message)
+  ctx.body = tip
+}
+```
+
+微信公众平台  https://mp.weixin.qq.com/wiki?t=resource/res_main&id=mp1421140453
+
+```js
+const tip = '欢迎来到河间地!\n\n<a href="http://www.baidu.com">传送</a>'
+export default async (ctx, next) => {
+  const message = ctx.weixin
+  // 将消息原样回复
+  if (message.MsgType === 'text') {
+    ctx.body = message.Content
+  } else if (message.MsgType === 'image') {
+    ctx.body = {
+      msgType: 'image',
+      mediaId: message.MediaId
+    }
+  } else if (message.MsgType === 'voice') {
+    ctx.body = {
+      msgType: 'voice',
+      mediaId: message.MediaId
+    }
+  } else if (message.MsgType === 'video') {
+    ctx.body = {
+      title: message.ThumbMediaId,
+      msgType: 'video',
+      mediaId: message.MediaId
+    }
+  } else if (message.MsgType === 'location') {
+    ctx.body = {
+      msgType: 'location',
+      Location_X: message.Location_X,
+      Location_Y: message.Location_Y
+    }
+  } else if (message.MsgType === 'link') {
+    ctx.body = {
+      title: message.title,
+      msgType: 'link',
+      mediaId: message.MediaId
+    }
+  }
+```
