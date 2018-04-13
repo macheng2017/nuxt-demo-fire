@@ -205,51 +205,46 @@ export default async (ctx, next) => {
 const tip = '欢迎来到河间地!\n\n<a href="http://www.baidu.com">传送</a>'
 export default async (ctx, next) => {
   const message = ctx.weixin
-  // 将消息原样回复
-  if (message.MsgType === 'text') {
+
+  // 关注/取消关注
+  if (message.MsgType === 'event') {
+    if (message.Event === 'subscribe') {
+      ctx.body = tip
+    } else if (message.Event === 'unsubscribe') {
+      console.log('取关!')
+      // 上报地理位置信息
+    } else if (message.Event === 'LOCATION') {
+      ctx.body = message.Latitude + ' : ' + message.Longitude
+    }
+  } else if (message.MsgType === 'text') {
     ctx.body = message.Content
   } else if (message.MsgType === 'image') {
+    console.log('================')
     ctx.body = {
-      msgType: 'image',
+      type: 'image',
       mediaId: message.MediaId
     }
   } else if (message.MsgType === 'voice') {
     ctx.body = {
-      msgType: 'voice',
+      type: 'voice',
       mediaId: message.MediaId
     }
   } else if (message.MsgType === 'video') {
     ctx.body = {
+      type: 'video',
       title: message.ThumbMediaId,
-      msgType: 'video',
       mediaId: message.MediaId
     }
   } else if (message.MsgType === 'location') {
-    ctx.body = {
-      msgType: 'location',
-      Location_X: message.Location_X,
-      Location_Y: message.Location_Y
-    }
+    ctx.body = message.Location_X + ' : ' + message.Location_Y
   } else if (message.MsgType === 'link') {
-    ctx.body = {
+    // 这里是一个数组, 在util中会被添加为news
+    ctx.body = [{
       title: message.Title,
-      msgType: 'link',
-      mediaId: message.MediaId
-    }
-  }
-```
-
-
-```js
-// 关注/取消关注
-if (message.MsgType === 'event') {
-  if(message.Event === 'subscribe') {
-    ctx.body = tip
-  } else if (message.Event === 'unsubscribe') {
-    console.log('取关!')
-    // 上报地理位置信息
-  } else if (message.Event === 'LOCATION') {
-    ctx.body = message.Latitude + ' : ' + message.Longitude
+      description: message.Description,
+      picUrl: 'https://mmbiz.qpic.cn/mmbiz_jpg/VXnhnc9vfmrUjHfjXrRtyq4WldQCxpcEt70jlNCGicaibSJ4TycPwdZlJnibOhgbdaOueMraicsbZQMHAicQ3tNeLOQ/0',
+      url: message.Url
+    }]
   }
 }
 
@@ -258,3 +253,140 @@ if (message.MsgType === 'event') {
 
 
 ## part4.3 素材管理
+
+### 实现素材上传功能
+
+位置: /server/wechat-lib/index.js
+
+```js
+import fs from 'fs'
+// 声明一个读取文件大小的方法
+function statFile(filepath) {
+  return new Promise((resolve, reject)=> {
+    fs.stat(filepath, (err, stat) => {
+      if (err) reject(err)
+      else resolve(stat)
+    })
+  })
+}
+
+```
+
+```js
+import formstream from 'formstream'
+
+
+// type 上传类型 图片 图文 视频
+// material 素材本身,是图片路径,还是图文消息
+// permanent 是否是永久素材还是临时
+async uploadMaterial(token, type, material, permanent) {
+  // 2.构建表单
+  let form = {}
+  // 2.1 临时素材地址
+  let url = api.temporary.upload
+
+  // 2.2 如果未指定则是永久素材
+  if (permanent) {
+    url = api.permanent.upload
+    // 通过loadsh 继承 permanent 里面的数据,里面可能是一个图文素材
+    _.extend(form, permanent)
+
+  }
+  // 2.3 判断上传素材类型
+  if (type === 'pic') {
+    url = api.permanent.uploadNewsPic
+  }
+  if (type === 'news') {
+    url = api.permanent.uploadNews
+    form = material
+  } else {
+    // 可能是图片或者视频,这时候需要构建表单
+    // 通过 formstream() 生成表单对象
+    form = formstream()
+    //  media 是官方需要的,material 素材的路径, 素材名字
+    const stat = await statFile(material)
+    // 
+    form.file('media', material, path.basename(material), stat.size)
+
+  }
+  // 4. 拼接上传url 
+  let uploadUrl = url + 'access_token=' + token
+  // 如果不是永久类型则追加类型
+  if (!permanent) {
+    uploadUrl += '&type' + type
+  } else {
+    // 否则 是永久素材将token加入form表单中
+    form.filed('access_token', access_token)
+  }
+  // 构建配置项
+  const options = {
+    methods: 'POST',
+    url: uploadUrl,
+    json: true
+  }
+  if (type === 'news') {
+    // 如果类型是图文类型,将options设置为当前的form
+    options.body = form
+  } else {
+    // 否则是一个上传图片的表单域
+    options.formData = form
+  }
+return options
+}
+
+//  这里的uploadMaterial 不会执行上传动作, 只是配置好了上传需要的参数
+//  上传动作再次封装起来
+
+async handle(operation, ...args) {
+  // 1. 拿到token
+  const tokenData = await this.fetchAccessToken()
+  // 2. 根据传递进去的类型和token,拿到已经准备好的配置项
+  const options = await this[operation](tokenData.access_token, ...args)
+  // 3. 这样options就构建好了,并传入请求
+  const data = await this.request(options)
+  return data
+}
+
+```
+
+将官网给出的临时素材地址拿过来
+
+```js
+const base = 'https://api.weixin.qq.com/cgi-bin/'
+const api = {
+  accessToken: base + 'token?grant_type=client_credential'
+}
+
+```
+
+```js
+// 3
+// 新增临时素材
+//https://api.weixin.qq.com/cgi-bin/media/upload?access_token=ACCESS_TOKEN&type=TYPE
+//https://api.weixin.qq.com/cgi-bin/media/get?access_token=ACCESS_TOKEN&media_id=MEDIA_ID
+const base = 'https://api.weixin.qq.com/cgi-bin/'
+const api = {
+  accessToken: base + 'token?grant_type=client_credential',
+  temporary: {
+    upload: base + 'media/upload?',
+    fetch: base + 'media/get?'
+  },
+  // 新增其他类型永久素材
+  // https://api.weixin.qq.com/cgi-bin/material/add_material?access_token=ACCESS_TOKEN&type=TYPE
+  // https://api.weixin.qq.com/cgi-bin/material/get_material?access_token=ACCESS_TOKEN
+  permanent: {
+    upload: base + 'material/add_material?',
+    // 图文消息内的图片
+    uploadNews: base + 'material/add_news?',
+    uploadNewsPic: base + 'media/uploadimg?',
+    fetch: base + 'material/get_material?',
+    del: base + 'material/del_material?',
+    update: base + 'material/update_news',
+    count: base + 'material/get_materialcount?',
+    batch: base+ 'material/batchget_material?'
+   }
+}
+
+```
+
+
