@@ -59,7 +59,7 @@ function tpl(content, message) {
     content = 'Empty news'
   }
   if (content && content.type) {
-    type = 'text'
+    type = content.type
   }
   let info = Object.assign({}, {
     content: content,

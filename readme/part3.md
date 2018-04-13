@@ -304,6 +304,7 @@ export default function(opts, replay) {
     // 这样在后面的代码单元就可以访问到ctx.weixin了
     ctx.weixin = message
     // 7. 将控制权交到reply 通过await 异步让reply内部执行,在执行中可以调用到上下文
+    // 使用apply可以在调用函数的同时,指定this值,当前this值为ctx
     await reply.apply(ctx, [ctx, next])
     // 8. 执行之后就可以拿到回复内容了,reply是回复策略
     const replyBody = ctx.body
@@ -319,6 +320,9 @@ export default function(opts, replay) {
   }
 }
 ```
+
+* Function.prototype.apply() - JavaScript | MDN  https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Function/apply
+
 消息中间件的流程
 1. 拿到所有参数,进行字典排序,加密
 2. 如果符合加密规则,进而拿到整个http请求的数据包

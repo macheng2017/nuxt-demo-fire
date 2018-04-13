@@ -57,7 +57,7 @@ const tpl = `<xml>
           <ArticleCount><%= content.length %></ArticleCount>
 
           <Articles>
-            <% content.forEatch(function(item){ %>
+            <% content.forEach(function(item){ %>
                 <item>
                     <Title>
                         <![CDATA[<%= item.title %>]]>

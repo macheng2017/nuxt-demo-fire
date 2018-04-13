@@ -24,7 +24,7 @@ function formatMessage (result) {
         let val = item[0]
 
         if(typeof val === 'object') {
-          message[key] = formateMessage(val)
+          message[key] = formatMessage(val)
         } else {
           //不是对象,赋值并判断下是否是空值
           message[key] = (val || '').trim()
@@ -33,7 +33,7 @@ function formatMessage (result) {
         message[key] = []
 
         for (let j = 0; i < item.length; j++){
-          message[key].push(fromatMessage(item[j]))
+          message[key].push(formatMessage(item[j]))
         }
       }
     }
@@ -71,9 +71,9 @@ function tpl (content, message) {
   if(!content) {
     content = 'Empty News'
   }
-  // 如果type不是text 设置为text
+  // 如果type 不是text 设置为text
   if(content && content.type) {
-    type = 'text'
+    type = content.type
   }
   // 构建消息对象
   info = Object.assign({}, {
@@ -152,7 +152,7 @@ import ejs from 'ejs'
           <ArticleCount><%= content.length %></ArticleCount>
 
           <Articles>
-            <% content.forEatch(function(item){ %>
+            <% content.forEach(function(item){ %>
                 <item>
                     <Title>
                         <![CDATA[<%= item.title %>]]>
@@ -199,6 +199,9 @@ export default async (ctx, next) => {
 微信公众平台  https://mp.weixin.qq.com/wiki?t=resource/res_main&id=mp1421140453
 
 ```js
+// 为什么要用fn.apply()?
+ await reply.apply(ctx, [ctx, next])
+// ---------------------------------------------------------
 const tip = '欢迎来到河间地!\n\n<a href="http://www.baidu.com">传送</a>'
 export default async (ctx, next) => {
   const message = ctx.weixin
@@ -252,3 +255,6 @@ if (message.MsgType === 'event') {
 
 
 ```
+
+
+## part4.3 素材管理

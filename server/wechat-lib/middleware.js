@@ -39,15 +39,17 @@ export default function (opts, reply) {
         encoding: ctx.charset
       })
       const content = await util.parseXML(data)
-      console.log('content' + JSON.stringify(content))
+      console.log('content = ' + JSON.stringify(content))
       // content.xml 不是一个文件,而是content的xml属性
       const message = util.formatMessage(content.xml)
       // const message = JSON.parse(JSON.stringify(content)).xml
+      console.log('message = ' + JSON.stringify(message))
       ctx.weixin = message
       await reply.apply(ctx, [ctx, next])
       const replyBody = ctx.body
+      console.log('replyBody = ' + JSON.stringify(replyBody))
       const msg = ctx.weixin
-      console.log(replyBody)
+      console.log('msg= ' + JSON.stringify(msg))
       const xml = util.tpl(replyBody, msg)
       console.log(xml)
       ctx.type = 'application/xml'
