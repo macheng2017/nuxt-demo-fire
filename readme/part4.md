@@ -258,96 +258,6 @@ export default async (ctx, next) => {
 
 位置: /server/wechat-lib/index.js
 
-```js
-import fs from 'fs'
-// 声明一个读取文件大小的方法
-function statFile(filepath) {
-  return new Promise((resolve, reject)=> {
-    fs.stat(filepath, (err, stat) => {
-      if (err) reject(err)
-      else resolve(stat)
-    })
-  })
-}
-
-```
-
-```js
-import formstream from 'formstream'
-
-
-// type 上传类型 图片 图文 视频
-// material 素材本身,是图片路径,还是图文消息
-// permanent 是否是永久素材还是临时
-async uploadMaterial(token, type, material, permanent) {
-  // 2.构建表单
-  let form = {}
-  // 2.1 临时素材地址
-  let url = api.temporary.upload
-
-  // 2.2 如果未指定则是永久素材
-  if (permanent) {
-    url = api.permanent.upload
-    // 通过loadsh 继承 permanent 里面的数据,里面可能是一个图文素材
-    _.extend(form, permanent)
-
-  }
-  // 2.3 判断上传素材类型
-  if (type === 'pic') {
-    url = api.permanent.uploadNewsPic
-  }
-  if (type === 'news') {
-    url = api.permanent.uploadNews
-    form = material
-  } else {
-    // 可能是图片或者视频,这时候需要构建表单
-    // 通过 formstream() 生成表单对象
-    form = formstream()
-    //  media 是官方需要的,material 素材的路径, 素材名字
-    const stat = await statFile(material)
-    // 
-    form.file('media', material, path.basename(material), stat.size)
-
-  }
-  // 4. 拼接上传url 
-  let uploadUrl = url + 'access_token=' + token
-  // 如果不是永久类型则追加类型
-  if (!permanent) {
-    uploadUrl += '&type' + type
-  } else {
-    // 否则 是永久素材将token加入form表单中
-    form.filed('access_token', access_token)
-  }
-  // 构建配置项
-  const options = {
-    methods: 'POST',
-    url: uploadUrl,
-    json: true
-  }
-  if (type === 'news') {
-    // 如果类型是图文类型,将options设置为当前的form
-    options.body = form
-  } else {
-    // 否则是一个上传图片的表单域
-    options.formData = form
-  }
-return options
-}
-
-//  这里的uploadMaterial 不会执行上传动作, 只是配置好了上传需要的参数
-//  上传动作再次封装起来
-
-async handle(operation, ...args) {
-  // 1. 拿到token
-  const tokenData = await this.fetchAccessToken()
-  // 2. 根据传递进去的类型和token,拿到已经准备好的配置项
-  const options = await this[operation](tokenData.access_token, ...args)
-  // 3. 这样options就构建好了,并传入请求
-  const data = await this.request(options)
-  return data
-}
-
-```
 
 将官网给出的临时素材地址拿过来
 
@@ -389,4 +299,122 @@ const api = {
 
 ```
 
+```js
+import fs from 'fs'
+// 声明一个读取文件大小的方法
+function statFile(filepath) {
+  return new Promise((resolve, reject)=> {
+    fs.stat(filepath, (err, stat) => {
+      if (err) reject(err)
+      else resolve(stat)
+    })
+  })
+}
 
+```
+
+```js
+import formstream from 'formstream'
+
+
+// type 上传类型 图片 图文 视频
+// material 素材本身,是图片路径,还是图文消息
+// permanent 标识是否是永久素材还是临时
+async uploadMaterial(token, type, material, permanent) {
+  // 2.构建表单
+  let form = {}
+  // 2.1 临时素材地址
+  let url = api.temporary.upload
+
+  // 2.2 如果未指定则是永久素材
+  if (permanent) {
+    url = api.permanent.upload
+    // 通过loadsh 继承 permanent 里面的数据,里面可能是一个图文素材
+    _.extend(form, permanent)
+
+  }
+  // 2.3 判断上传素材类型
+  if (type === 'pic') {
+    url = api.permanent.uploadNewsPic
+  }
+  if (type === 'news') {
+    url = api.permanent.uploadNews
+    form = material
+  } else {
+    // 可能是图片或者视频,这时候需要构建表单
+    // 通过 formstream() 生成表单对象
+    form = formstream()
+    //  media 是官方需要的,material 素材的路径, 素材大小
+    const stat = await statFile(material)
+      // 可能使用 formstream方式不对,以流的形式读入
+      form.media = fs.createReadStream(material)
+   // form.file('media', material, path.basename(material), stat.size)
+
+  }
+  // 4. 拼接上传url 的参数
+  let uploadUrl = url + 'access_token=' + token
+  // 如果不是永久类型则追加类型
+  if (!permanent) {
+    uploadUrl += '&type' + type
+  } else {
+    // 否则 是永久素材将token加入form表单中
+     form.access_token = token
+    //form.filed('access_token', access_token)
+  }
+  // 构建配置项
+  const options = {
+    methods: 'POST',
+    url: uploadUrl,
+    json: true
+  }
+  if (type === 'news') {
+    // 如果类型是图文类型,将options设置为当前的form
+    options.body = form
+  } else {
+    // 否则是一个上传图片的表单域
+    options.formData = form
+  }
+return options
+}
+
+//  这里的uploadMaterial 不会执行上传动作, 只是配置好了上传需要的参数
+//  上传动作再次封装起来
+
+async handle(operation, ...args) {
+  // 1. 拿到token
+  const tokenData = await this.fetchAccessToken()
+  // 2. 根据传递进去的函数和token,拿到已经准备好的配置项
+  const options = await this[operation](tokenData.access_token, ...args)
+  // 3. 这样options就构建好了,并传入请求
+  const data = await this.request(options)
+  return data
+}
+
+```
+* [node-modules/formstream: multipart/form-data encoded stream, helper for file upload.](https://github.com/node-modules/formstream)
+* // 2. 根据传递进去的函数和token,拿到已经准备好的配置项
+  const options = await this[operation](tokenData.access_token, ...args)
+
+### 测试
+
+位置: server/middlewares/router.js
+
+```js
+router.get('/upload', (ctx, next) {
+  let Wechat = require('../wechat-lib')
+  let wechat = new Wechat(options)
+  // 先测试临时素材上传
+  wechat.handle('uploadMaterial', type, file)
+})
+```
+
+```js
+import { resolve } from 'path'
+router.get('/upload', (ctx, next) => {
+  let mp = require('../wechat')
+  // 从以前封装好的方法中拿到config /server/wechat/index.js
+  let client = mp.getWechat()
+  // 先测试临时素材上传
+  client.handle('uploadMaterial', 'video', resolve(__dirname, '../../123.mp4'))
+})
+```
