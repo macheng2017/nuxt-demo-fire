@@ -26,6 +26,7 @@ class Wechat {
 
   // 发送请求的
   async request (options){
+    options = Object.assign({}, options, {json: true})
     const response = await request(options)
 
     return response
@@ -44,6 +45,12 @@ class Wechat {
 }
 
 ```
+
+* options = Object.assign({}, options, {json: true})
+* 解决 throw new TypeError('First argument must be a string or Buffer');
+    ^
+* TypeError: First argument must be a string or Buffer
+request/request-promise: The simplified HTTP request client 'request' with Promise support. Powered by Bluebird.  https://github.com/request/request-promise
 
 安装库
 yarn add request-promise

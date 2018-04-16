@@ -51,7 +51,7 @@ export default function (opts, reply) {
       const msg = ctx.weixin
       console.log('msg= ' + JSON.stringify(msg))
       const xml = util.tpl(replyBody, msg)
-      console.log(xml)
+      // console.log(xml)
       ctx.type = 'application/xml'
       ctx.status = 200
       ctx.body = xml

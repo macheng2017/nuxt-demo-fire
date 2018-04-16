@@ -418,3 +418,284 @@ router.get('/upload', (ctx, next) => {
   client.handle('uploadMaterial', 'video', resolve(__dirname, '../../123.mp4'))
 })
 ```
+
+### 测试上传素材
+
+位置: router.js
+
+```js
+export const router = app => {
+  const router = new Router()
+  router.all('/wechat-hear', wechatMiddle(config.wechat, reply))
+  router.get('/upload', async(ctx, next) => {
+    let mp = require('../wechat')
+// video
+    let client = mp.getWechat()
+    // client.handle('uploadMaterial', 'video', resolve(__dirname, '../../123.mp4'))
+    const data = client.handle('uploadMaterial', 'video', resolve(__dirname, '../../123.mp4'),
+    {type: 'video', description: '{"title": "haha", "introduction": "嘿嘿"}'})
+    console.log(data)
+  })
+
+  // image 永久
+   const data = await client.handle('uploadMaterial', 'image', resolve(__dirname, '../../bizhi.jpg'), {type: 'image'})
+   // image临时
+   const data = await client.handle('uploadMaterial', 'image', resolve(__dirname, '../../bizhi.jpg'))
+
+       // 图文
+    const news = {
+      articles: [{
+        'title': '呵呵笑很重要',
+        'thumb_media_id': '5OAlvVYRE87r6FjevhEkNxfIv_8-iCoJYWQHrgco1oM',
+        'author': '呵呵笑很重要',
+        'digest': '呵呵',
+        'show_cover_pic': 1,
+        'content': '没有',
+        'content_source_url': 'http://www.baidu.com'
+      },
+      {
+        'title': '呵呵笑很重要23',
+        'thumb_media_id': '5OAlvVYRE87r6FjevhEkNxfIv_8-iCoJYWQHrgco1oM',
+        'author': '呵呵笑很重要',
+        'digest': '呵呵',
+        'show_cover_pic': 0,
+        'content': '没有',
+        'content_source_url': 'http://www.baidu.com'
+      }
+      // 若新增的是多图文素材，则此处应还有几段articles结构
+      ]
+    }
+    const data = await client.handle('uploadMaterial', 'news', news, {})
+
+```
+
+## 获取素材
+
+```js
+/**
+ * token  
+ * mediaId 素材meaiaId
+ * type    素材类型
+ * permanent 临时或者永久标识
+ * */
+fetchMaterial (token, mediaId, type, permanent) {
+  let form = {}
+  // 默认fetchUrl地址
+  let fetchUrl = api.temporary.fetch
+  if (permanent) {
+    fetchUrl = api.permanent.fetch
+  }
+
+  let url = fetchUrl + 'access_token' + token
+  let options = {method: 'POST', url:url }
+
+  if(permanent) {
+    form.media_id = mediaId
+    form.assess_token = token
+    options.body = form
+  } else {
+    if (type === 'video') {
+      // 官方临时素材视频下载不支持https:// 只能替换 
+      url = url.replace('https://','http://')
+    }
+
+    url += '&media_id='
+  }
+return options
+}
+
+deleteMaterial(token, mediaId) {
+  const form = {
+    media_id: mediaId
+  }
+  const url = api.permanent.del + 'access_token=' + token  + '&media_id=' + mediaId
+  return {method: 'POST', url: url, body: form}
+}
+
+updateMaterial(token, mediaId, news) {
+  const form= {
+    media_id: mediaId
+  }
+  _.extend(form, news)
+  const url = api.permanent.update + 'access_token=' + token + '&media_id' + mediaId
+  return {method: 'POST', url: url, body: form}
+}
+// 获取素材总数
+countMaterial(token) {
+  const url = api.permanent.count + 'access_token=' + token
+  return {method: 'POST', url: url}
+}
+
+//获取素材列表
+batchMaterial (token, options) {
+  // 做规范化处理
+  options.type = options.type || 'image'
+  options.offset = options.offset || 0
+  options.count = options.count || 10
+  
+  const url = api.permanent.batch + 'access_token=' + token
+  return {method: 'POST', url:url, body: options}
+}
+```
+
+* 这里定义的函数都是不直接执行结果的,而是将过程定义清楚之后交给另外一个函数执行
+* 这样做的好处是什么?
+
+## 封装用户接口
+
+```js 
+// 增加接口api地址
+tag: {
+  create: base + 'tags/create?',
+  fetch: base + 'tags/get?',
+  update: base + 'tags/update?',
+  del: base + 'tags/delete?',
+  fetchUsers: base + 'user/tag/get?',
+  batchTag: base + 'tags/members/batchtagging?',
+  batchUnTag: base + 'tags/members/batchuntagging?'
+  getTagList: base + 'tags/getidlist?'
+},
+user: {
+  remark: base + 'user/info/updateremark?',
+  info: base + 'user/info?',
+  batchInfo: base + 'user/info/batchget?',
+  fetchUserList: base + 'user/get?',
+  getBlackList: base + 'tags/members/getblacklist?',
+  batchBlackUsers: base + 'tags/members/batchblacklist?',
+  batchUnBlackUsers: base + 'tags/members/batchunblacklist?',
+}
+// 创建标签
+createTag(token, name) {
+  const form = {
+    tag: {
+      name: name
+    }
+  }
+  const url = api.tag.create + 'access_token=' + token
+  return {method: 'POST', url: url, body: form}
+}
+// 获取标签列表
+fetchTags(token) {
+  const url = api.tag.fetch + 'access_token=' + token
+  // 不写method默认get
+  return {url: url}
+}
+updateTag(token, tagId, name) {
+  const form = {
+    tag: {
+      id: tagId,
+      name: name
+    }
+  }
+  const url = api.tag.update + 'access_token=' + token
+  return {method: 'POST', url: url, body: form}
+}
+
+delTag(token, tagId) {
+  const form = {
+    tag: {
+      id: tagId,
+    }
+  }
+  const url = api.tag.del + 'access_token=' + token
+  return {method: 'POST', url: url, body: form}
+}
+
+fetchTagUsers(token, tagId, openId) {
+  let form = {
+    tagid: tagId,
+    next_openid: openId || ''
+  }
+  const url = api.tag.fetchUsers + 'access_token=' + token
+  return {method: 'POST', url: url, body: form}
+}
+// 批量为用户打标签/删除标签
+batchTag(token, openIdList, tagId, unTag) {
+  const form = {
+    openid_list: openIdList,
+    tagid: tagId
+  }
+  let url = api.tag.batchTag
+  if (unTag) {
+    url = api.tag.batchUnTag
+  }
+   url += 'access_token=' + token
+  return {method: 'POST', url: url, body: form}
+}
+
+//  获取用户身上的标签列表
+getTagList(token, openId) {
+  const form = {
+    openid: openId
+  }
+  const url = api.tag.getTagList + 'access_token=' + token
+  return {method: 'POST', url: url, body: form}
+}
+// 设置用户备注名
+markUser(token, openId, remark) {
+  const form = {
+    opeid: openId,
+    remark: remark
+  }
+  const url = api.user.remark + 'access_token=' + token
+  return {method: 'POST', url: url, body: form}
+}
+// 获取用户基本信息(UnionID机制)
+getUserInfo(token, openId, lang) {
+  const url = `${api.user.info}access_token=${token}&openid=${openId}&lang=${lang || 'zh_CN'}`
+  return {url: url}
+}
+// 批量获取用户基本信息
+batchUserInfo (token, userList) {
+  const url = api.user.batchInfo + 'access_token=' + token
+
+  const form = {
+    user_list: userList
+  }
+  return {method: 'POST', url: url, body: form}
+}
+// 获取用户列表
+fetchUserList(token, openId, lang) {
+  const url = `${api.user.fetchUserList}access_token=${token}&next_openid=${openId || ''}`
+  return {url: url}
+}
+// 黑名单实现方式类似,没有实现
+```
+
+### 测试
+
+在replay里面测试
+
+
+
+```js
+ // 测试微信粉丝,用户获取相关接口
+  let mp = require('../wechat')
+  let client = mp.getWechat()
+  //....
+
+} else if (message.MsgType === 'text') {
+    if (message.Content === '1') {
+      try {
+        // const data = await client.handle('fetchUserList')
+        let userList = [{
+          openid: 'od9fNwqEOXR-CIapYDFEsCqhygro',
+          lang: 'zh_CN'
+        }]
+        const data = await client.handle('batchUserInfo', userList)
+        console.log('data= ' + JSON.stringify(data))
+      } catch (err) {
+        console.log(err)
+      }
+    }
+    ctx.body = message.Content
+  } else if (message.MsgType === 'image') {
+
+```
+```js
+
+  const data = await client.handle('fetchTags')
+
+```
+
+## 自定义菜单创建于删除
