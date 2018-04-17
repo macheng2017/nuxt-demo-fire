@@ -6,7 +6,7 @@ export default async (ctx, next) => {
   let mp = require('../wechat')
   let client = mp.getWechat()
   // const data = await client.handle('uploadMaterial', 'news', news, {})
-  // console.log(data)
+  console.log(message)
 
   // 关注/取消关注
   if (message.MsgType === 'event') {
@@ -17,6 +17,11 @@ export default async (ctx, next) => {
       // 上报地理位置信息
     } else if (message.Event === 'LOCATION') {
       ctx.body = message.Latitude + ' : ' + message.Longitude
+      // 测试点击菜单式事件推送
+    } else if (message.Event === 'VIEW') {
+      ctx.body = message.EventKey + ' ' + message.MenuID
+    } else if (message.Event === 'pic_sysphoto') {
+      ctx.body = message.Count + ' ' + 'photo send'
     }
   } else if (message.MsgType === 'text') {
     if (message.Content === '1') {
@@ -31,8 +36,16 @@ export default async (ctx, next) => {
       } catch (err) {
         console.log(err)
       }
+      ctx.body = message.Content
+      // 测试菜单各项功能
+    } else if (message.Content === '2') {
+      // const menuData = await client.handle('getMenu')
+      const menu = require('./menu.js').default
+      await client.handle('delMenu')
+      const menuData = await client.handle('createMenu', menu)
+      console.log('data= ' + JSON.stringify(menuData))
+      ctx.body = message.Content
     }
-    ctx.body = message.Content
   } else if (message.MsgType === 'image') {
     console.log('================')
     ctx.body = {

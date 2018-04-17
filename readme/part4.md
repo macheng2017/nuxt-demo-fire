@@ -699,3 +699,105 @@ fetchUserList(token, openId, lang) {
 ```
 
 ## 自定义菜单创建于删除
+
+### 封装接口
+
+1. 创建接口
+
+```js
+// 添加新的api地址
+menu: {
+  create: base + 'menu/create?',
+  get: base + 'menu/get?',
+  del: base + 'menu/get?',
+  addConditional: base + 'menu/addconditional?',
+  delConditional: base + 'menu/delconditional?',
+  tryMatch: base + 'menu/trymatch?',
+  getInfo: base + 'get_current_selfmenu_info?',
+}
+// 添加菜单
+createMenu(token, menu) {
+  const url = api.menu.create + 'access_token=' + token
+  return {method: 'POST', url: url, body: menu}
+}
+// 获取菜单
+getMenu(token) {
+  const url = api.menu.get + 'access_token=' + token
+  return { url: url}
+}
+// 删除菜单
+delMenu(token) {
+  const url = api.menu.del + 'access_token=' + token
+  return { url: url}
+}
+// 添加个性化菜单
+addCondition(token, menu, rule) {
+  const form = {
+    button: menu,
+    matchrule: rule
+  }
+  const url = api.menu.addCondition + 'access_token=' + token
+  return {method: 'POST', url: url, body: form}
+}
+// 删除个性化菜单
+delCondition(token, menuId) {
+  const url = api.menu.delCondition + 'access_token=' + token
+  const form = {
+    menuid: menuId
+  }
+  return {method: 'POST', url: url, body: form}
+}
+//获取自定义菜单配置接口
+getCurrentMenuInfo(token) {
+  const url = api.menu.getInfo + 'access_token=' + token
+  return { url: url}
+}
+
+```
+
+### 测试菜单
+
+位置: server/wechat/reply.js
+
+增加回复规则
+```js
+  // 测试菜单各项功能
+    } else if (message.Content === '2') {
+      const menuData = await client.handle('getMenu')
+      console.log('data= ' + JSON.stringify(menuData))
+      ctx.body = message.Content
+    }
+
+```
+
+###  新增菜单
+增加 server/wechat/menu.js
+```js
+export default {
+  button: [{
+    'name': '游戏周边',
+    'sub_button': [{
+      'name': '小程序'
+      'type', 'click',
+      'key': 'mini_clicked'
+    },{
+      'name': '联系我',
+      'type': 'click',
+      'key': 'contact'
+    },{
+      'name': '手办',
+      'type': 'click',
+      'key': 'gift'
+    }]
+  },{
+    'name': '冰火家族',
+    'type': 'view',
+    'url': 'http://coding.imooc.com'
+  },{
+    'name': '最新资源',
+    'type': 'location_select',
+    'key': 'location'
+  }]
+}
+
+```

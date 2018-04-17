@@ -1,7 +1,7 @@
 import request from 'request-promise'
 import fs from 'fs'
 import * as _ from 'lodash'
-import formstream from 'formstream'
+// import formstream from 'formstream'
 
 const base = 'https://api.weixin.qq.com/cgi-bin/'
 const api = {
@@ -39,6 +39,15 @@ const api = {
     getBlackList: base + 'tags/members/getblacklist?',
     batchBlackUsers: base + 'tags/members/batchblacklist?',
     batchUnBlackUsers: base + 'tags/members/batchunblacklist?'
+  },
+  menu: {
+    create: base + 'menu/create?',
+    get: base + 'menu/get?',
+    del: base + 'menu/delete?',
+    addConditional: base + 'menu/addconditional?',
+    delConditional: base + 'menu/delconditional?',
+    tryMatch: base + 'menu/trymatch?',
+    getInfo: base + 'get_current_selfmenu_info?'
   }
 }
 
@@ -78,7 +87,7 @@ export default class Wechat {
     console.log(url)
     let data = await this.request({url: url})
     // console.log('-----------' + data)
-    data = JSON.parse(data)
+    // data = JSON.parse(data)
     const now = (new Date().getTime())
     const expiresIn = now + (data.expires_in - 20) * 1000
     // console.log('data.expires_in = ' + data.expires_in)
@@ -314,14 +323,52 @@ export default class Wechat {
     const url = `${api.user.fetchUserList}access_token=${token}&next_openid=${openId || ''}`
     return {url: url}
   }
+
+    // 添加菜单
+  createMenu(token, menu) {
+    const url = api.menu.create + 'access_token=' + token
+    return {method: 'POST', url: url, body: menu}
+  }
+  // 获取菜单
+  getMenu(token) {
+    const url = api.menu.get + 'access_token=' + token
+    return {url: url}
+  }
+  // 删除菜单
+  delMenu(token) {
+    const url = api.menu.del + 'access_token=' + token
+    return {url: url}
+  }
+  // 添加个性化菜单
+  addConditionMenu(token, menu, rule) {
+    const form = {
+      button: menu,
+      matchrule: rule
+    }
+    const url = api.menu.addConditional + 'access_token=' + token
+    return {method: 'POST', url: url, body: form}
+  }
+  // 删除个性化菜单
+  delConditionMenu(token, menuId) {
+    const url = api.menu.dellConditional + 'access_token=' + token
+    const form = {
+      menuid: menuId
+    }
+    return {method: 'POST', url: url, body: form}
+  }
+  // 获取自定义菜单配置接口
+  getCurrentMenuInfo(token) {
+    const url = api.menu.getInfo + 'access_token=' + token
+    return {url: url}
+  }
 // 黑名单实现方式类似,没有实现
 }
 // 声明一个读取文件大小的方法
-function statFile(filepath) {
-  return new Promise((resolve, reject) => {
-    fs.stat(filepath, (err, stat) => {
-      if (err) reject(err)
-      else resolve(stat)
-    })
-  })
-}
+// function statFile(filepath) {
+//   return new Promise((resolve, reject) => {
+//     fs.stat(filepath, (err, stat) => {
+//       if (err) reject(err)
+//       else resolve(stat)
+//     })
+//   })
+// }
