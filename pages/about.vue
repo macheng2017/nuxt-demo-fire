@@ -1,18 +1,11 @@
 <template>
   <section class="container">
     <img src="../static/img/logo.png" alt="Nuxt.js Logo" class="logo" />
-    <h1 class="title">
-      This page is loaded from the {{ name }}
-    </h1>
-    <h2 class="info" v-if="name === 'client'">
-      Please refresh the page
-    </h2>
-    <nuxt-link class="button" to="/">
-      Home page
-    </nuxt-link>
+
   </section>
 </template>
 <script>
+// import {mapState} from 'vuex'
 export default {
   asyncData({ req }) {
     return {
@@ -21,8 +14,48 @@ export default {
   },
   head() {
     return {
-      title: `About Page (${this.name}-side)`
+      title: `测试页面`
     }
+  },
+  beforeMount() {
+    const wx = window.wx
+    const url = window.location.href
+    this.$store.dispatch('getWechatSignature', url)
+    .then(res => {
+      let params = ''
+      if (res.data.success) {
+        params = res.data.params
+      }
+
+      wx.config({
+        debug: true,
+        appId: params.appId,
+        timestamp: params.timestamp,
+        nonceStr: params.noncestr,
+        signature: params.signature,
+        jsApiList: [
+          'chooseImage',
+          'previewImage',
+          'uploadImage',
+          'downloadImage',
+          'onMenuShareTimeline',
+          'onMenuShareAppMessage',
+          'onMenuShareQQ',
+          'onMenuShareWeibo',
+          'onMenuShareQZone',
+          'hideAllNonBaseMenuItem',
+          'showMenuItems'
+        ]
+      })
+      // 等到config信息验证之后就会执行read()方法,
+      // 所有的接口必须要config验证之后才能调用,
+      // config权限验证是异步的动作,为保证接口在页面加载的时候都能使用,
+      // 将其放入wx.ready回调方法中,如果是用户触发调用的接口比如:分享就不用放入
+      wx.ready(() => {
+        wx.hideAllNonBaseMenuItem()
+        console.log('success!')
+      })
+    })
   }
 }
 </script>

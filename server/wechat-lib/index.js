@@ -1,6 +1,7 @@
 import request from 'request-promise'
 import fs from 'fs'
 import * as _ from 'lodash'
+import {sign} from './util'
 // import formstream from 'formstream'
 
 const base = 'https://api.weixin.qq.com/cgi-bin/'
@@ -48,6 +49,9 @@ const api = {
     delConditional: base + 'menu/delconditional?',
     tryMatch: base + 'menu/trymatch?',
     getInfo: base + 'get_current_selfmenu_info?'
+  },
+  ticket: {
+    get: base + 'ticket/getticket?'
   }
 }
 
@@ -59,7 +63,10 @@ export default class Wechat {
     this.appSecret = opts.appSecret
     this.getAccessToken = opts.getAccessToken
     this.saveAccessToken = opts.saveAccessToken
+    this.getTicket = opts.getTicket
+    this.saveTicket = opts.saveTicket
     this.fetchAccessToken()
+    this.fetchTicket()
   }
   async request(options) {
     options = Object.assign({}, options, {json: true})
@@ -73,12 +80,22 @@ export default class Wechat {
 
   async fetchAccessToken() {
     let data = await this.getAccessToken()
-    console.log('isValidAccessToken=' + this.isValidAccessToken(data))
-    if (!this.isValidAccessToken(data)) {
+    console.log('isValidToken=' + this.isValidToken(data, 'access_token'))
+    if (!this.isValidToken(data, 'access_token')) {
       data = await this.updateAccessToken()
     }
     await this.saveAccessToken(data)
     // console.log('..............+ ' + data)
+    return data
+  }
+
+  async fetchTicket(token) {
+    let data = await this.getTicket()
+    console.log('isValidToken=' + this.isValidToken(data, 'ticket'))
+    if (!this.isValidToken(data, 'ticket')) {
+      data = await this.updateTicket(token)
+    }
+    await this.saveTicket(data)
     return data
   }
 
@@ -96,9 +113,18 @@ export default class Wechat {
     // console.log('+++++++++++' + data)
     return data
   }
+  async updateTicket(token) {
+    const url = api.ticket.get + '&token=' + token + '&type=jsapi'
+    console.log(url)
+    let data = await this.request({url: url})
+    const now = (new Date().getTime())
+    const expiresIn = now + (data.expires_in - 20) * 1000
+    data.expires_in = expiresIn
+    return data
+  }
 
-  isValidAccessToken(data) {
-    if (!data || !data.access_token || !data.expires_in) {
+  isValidToken(data, name) {
+    if (!data || !data[name] || !data.expires_in) {
       return false
     }
     const expiresIn = data.expires_in
@@ -360,6 +386,10 @@ export default class Wechat {
   getCurrentMenuInfo(token) {
     const url = api.menu.getInfo + 'access_token=' + token
     return {url: url}
+  }
+  // 签名方法
+  sign(ticket, url) {
+    return sign(ticket, url)
   }
 // 黑名单实现方式类似,没有实现
 }

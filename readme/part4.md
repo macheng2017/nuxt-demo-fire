@@ -801,3 +801,383 @@ export default {
 }
 
 ```
+
+## js-SDK权限验证
+
+### 存储临时票据
+位置: database/schema/ticket.js
+复制token.js代码批量替换ticket
+
+```js
+const mongoose = require('mongoose')
+const Schema = mongoose.Schema
+
+const TicketSchema = new Schema({
+  name: String,
+  ticket: String,
+  expires_in: Number,
+  meta: {
+    createdAt: {
+      type: Date,
+      default: Date.now()
+    },
+    updatedAt: {
+      type: Date,
+      default: Date.now()
+    }
+  }
+})
+
+TicketSchema.pre('save', function (next) {
+  if (this.isNew) {
+    this.meta.createdAt = this.meta.updatedAt = Date.now()
+  } else {
+    this.meta.updatedAt = Date.now()
+  }
+  next()
+})
+
+TicketSchema.statics = {
+  async getTicket() {
+    const ticket = await this.findOne({
+      name: 'ticket'
+    }).exec()
+
+    // if (ticket && ticket.ticket) {
+    //   ticket.ticket = ticket.ticket
+    // }
+
+    return ticket
+  },
+  async saveTicket(data) {
+    let ticket = await this.findOne({
+      name: 'ticket'
+    }).exec()
+    if (ticket) {
+      ticket.ticket = data.ticket
+      ticket.expires_in = data.expires_in
+    } else {
+      ticket = new Ticket({
+        name: 'ticket',
+        ticket: data.ticket,
+        expires_in: data.expires_in
+      })
+    }
+
+    await ticket.save()
+    .then(product => console.log(product))
+    .catch(err => console.log(err))
+    return data
+  }
+}
+const Ticket = mongoose.model('Ticket', TicketSchema)
+```
+
+位置: wechat/index.js
+
+```js
+const Token = mongoose.model('Token')
+const Ticket = mongoose.model('Ticket')
+
+ getTicket: async () => await Ticket.getTicket(),
+ saveTicket: async (data) => await Ticket.saveTicket(data)
+
+
+```
+位置: wechat-lib/index.js 新增
+
+```js
+import {sign} from './util'
+ ticket: {
+    get: base + 'ticket/getticket?'
+  }
+
+    this.saveAccessToken = opts.saveAccessToken
+    this.getTicket = opts.getTicket
+    this.saveTicket = opts.saveTicket
+    this.fetchTicket()
+
+  async fetchTicket() {
+    let data = await this.getTicket()
+    console.log('isValidToken=' + this.isValidToken(data, 'ticket'))
+    if (!this.isValidToken(data, 'ticket')) {
+      data = await this.updateTicket()
+    }
+    await this.saveTicket(data)
+    return data
+  }
+  async updateTicket(token) {
+    const url = api.ticket.get + '&token=' + token + '&type=jsapi'
+    console.log(url)
+    let data = await this.request({url: url})
+    const now = (new Date().getTime())
+    const expiresIn = now + (data.expires_in - 20) * 1000
+    data.expires_in = expiresIn
+    return data
+  }
+
+
+
+  isValidToken(data, name) {
+    if (!data || !data[name] || !data.expires_in) {
+      return false
+    }
+    const expiresIn = data.expires_in
+    const now = (new Date().getTime())
+    if (now < expiresIn) {
+      return true
+    } else {
+      return false
+    }
+  }
+
+    // 签名方法
+  sign(ticket, url) {
+    return sign(ticket, url)
+  }
+
+```
+2. sign签名算法 
+
+位置: wechat-lib/util.js
+
+```js
+// 生成随机字符串
+
+function createNonce() {
+  return Math.random().toString(36).substr(2, 15)
+}
+// 生成时间戳
+function createTimestamp() {
+  return parseInt(new Date().getTime() / 1000, 0) + ''
+}
+// 排序方法
+function raw(args) {
+  let keys = Object.keys(args)
+  let str = ''
+  let newArgs = {}
+  keys = keys.sort()
+  keys.forEach((key) => {
+    newArgs[key.toLowerCase()] = args[key]
+  })
+
+  for (let k in newArgs) {
+    str += '&' + k + '=' + newArgs[k]
+  }
+  return str.substr(1)
+}
+
+function signIt(nonce, ticket, timestamp, url) {
+  const ret = {
+    jsapi_ticket: ticket,
+    nonceStr: nonce,
+    timestamp: timestamp,
+    url: url
+  }
+  const string = raw(ret)
+  const sha = sha1(string)
+  return sha
+
+}
+
+function sign(ticket, url) {
+  // 声明一个随机的字符串
+  const nonceStr = createNonce()
+  // 时间戳
+  const timestamp = createTimestamp()
+  const signature = signIt(nonceStr, ticket, timestamp, url)
+  return {
+    noncestr: nonceStr,
+    timestamp: timestamp,
+    signature: signature
+  }
+}
+
+export {
+  formatMessage,
+  parseXML,
+  sign,
+  tpl
+}
+
+```
+## 签名流程
+
+
+底层的数据交互的操作/微信相关的数据调用
+
+位置 server/api/wechat.js
+```js
+import { getWechat } from '../wechat'
+// 拿到case
+const client = getWechat()
+// 拿到全局票据
+export async function getSignatureAsync(url) {
+  const data = await client.fetchAccessToken()
+  const token = data.access_token
+  const ticketData = await client.fetchTicket()
+  const ticket = ticketData.ticket
+
+  let params = client.sign(ticket, url)
+  params.appId = client.appID
+  return params
+}
+
+// 像俄罗斯套娃一样层层的函数,越往里面的函数需要的参数越少
+
+```
+
+位置: server/api/controllers/wechat.js
+微信业务相关的控制逻辑
+
+```js
+import * as api from '../api'
+export aysnc function signature(ctx, next) {
+  const url = ctx.query.url
+  // 
+  if (!url) ctx.throw(404)
+  const params = await api.getSignatureAsync(url)
+  ctx.body = {
+    success: true,
+    params: params
+  }
+}
+```
+#### path: server/api/index.js
+通过index.js 收集所需要暴露出来的api
+
+```js
+import {
+  getSignatureAsync
+}from './wechat'
+
+export {
+  getSignatureAsync
+}
+
+// 这样就可以在其他文件中通过 import * as api from '../api'
+// 直接通过api来调用所暴露出来的方法了
+```
+
+位置:router.js
+增加一个
+
+```js
+import {signature} from '../controllers/wechat'
+router.get('/wechat-signature', wechat.signature)
+
+```
+
+## 测试页面
+pages/about.vue
+
+```js
+
+
+// nuxt.config.js 中增加
+
+,
+    scripts: [
+      {
+        src: 'http://res.wx.qq.com/open/js/jweixin-1.2.0.js'
+      }
+    ]
+```
+
+```js
+
+  beforeMount() {
+    const wx = window.wx
+    const url = window.location.href
+    this.$store.dispatch('getWechatSignture', url)
+    .then(res => {
+      if (res.data.success) {
+        const params = res.data.params
+      }
+
+      wx.config({
+        debug: true,
+        appId: params.appId,
+        timestamp: params.timestamp,
+        nonceStr: params.noncestr,
+        signature: params.signature,
+        jsApiList: [
+          'chooseImage',
+          'previewImage',
+          'uploadImage',
+          'downloadImage',
+          'onMenuShareTimeline',
+          'onMenuShareAppMessage',
+          'onMenuShareQQ',
+          'onMenuShareWeibo',
+          'onMenuShareQZone',
+          'hideAllNonBaseMenuItem',
+          'showMenuItems',
+        ]
+      })
+      // 等到config信息验证之后就会执行read()方法,
+      // 所有的接口必须要config验证之后才能调用,
+      // config权限验证是异步的动作,为保证接口在页面加载的时候都能使用,
+      // 将其放入wx.ready回调方法中,如果是用户触发调用的接口比如:分享就不用放入
+      wx.ready(() => {
+        wx.hideAllNonBaseMenuItem()
+        console.log('success!')
+
+      })
+    })
+  }
+```
+
+## 实现请求签名接口
+
+新增 /store
+如果有store会被nuxt 现式的调用,在store里面存放跟vue有关的数据状态
+
+index.js
+
+```js
+import Vuex from 'vuex'
+import getters from './getters'
+import actions from './actions'
+import mutations from './mutations'
+
+
+const createStore = () => {
+  return new Vuex.Store({
+    state: {
+
+    },
+    getters,
+    actions,
+    mutations
+  })
+}
+
+export default  createStore
+```
+新建  actions.js mutations.js getters.js
+
+actions.js
+```js
+import Services from './Services'
+// 通过它来请求签名值的操作
+export default {
+  getWechatSignature({ commit }, url) {
+    return Services.getWechatSignature(url)
+  }
+}
+```
+新建 ./services.js
+
+```js
+import axios from 'axios'
+const baseUrl = ''
+export default class Services {
+  getWechatSignature(url) {
+    return axios.get(`${baseUrl}/wechat-signature?url=${url}`)
+  }
+}
+```
+mutations.js getters.js 暂时未对外空对象
+
+
