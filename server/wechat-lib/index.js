@@ -66,7 +66,8 @@ export default class Wechat {
     this.getTicket = opts.getTicket
     this.saveTicket = opts.saveTicket
     this.fetchAccessToken()
-    this.fetchTicket()
+    // 不能在类初始化的时候调用fetchTicket,因为还没有当前url 以及 token
+    // this.fetchTicket()
   }
   async request(options) {
     options = Object.assign({}, options, {json: true})
@@ -80,7 +81,7 @@ export default class Wechat {
 
   async fetchAccessToken() {
     let data = await this.getAccessToken()
-    console.log('isValidToken=' + this.isValidToken(data, 'access_token'))
+    console.log(' fetchAccessToken isValidToken=' + this.isValidToken(data, 'access_token'))
     if (!this.isValidToken(data, 'access_token')) {
       data = await this.updateAccessToken()
     }
@@ -88,10 +89,23 @@ export default class Wechat {
     // console.log('..............+ ' + data)
     return data
   }
-
+  async updateAccessToken() {
+    const url = api.accessToken + '&appid=' + this.appID + '&secret=' + this.appSecret
+    console.log(' updateAccessToken ' + url)
+    let data = await this.request({url: url})
+    // console.log('-----------' + data)
+    // data = JSON.parse(data)
+    const now = new Date().getTime()
+    const expiresIn = now + (data.expires_in - 20) * 1000
+    console.log(' updateAccessToken data.expires_in = ' + data.expires_in)
+    // console.log('**********' + data + 'now= ' + now + ' expiresIn= ' + expiresIn)
+    data.expires_in = expiresIn
+    // console.log('+++++++++++' + data)
+    return data
+  }
   async fetchTicket(token) {
     let data = await this.getTicket()
-    console.log('isValidToken=' + this.isValidToken(data, 'ticket'))
+    console.log(' fetchTicket isValidToken=' + this.isValidToken(data, 'ticket'))
     if (!this.isValidToken(data, 'ticket')) {
       data = await this.updateTicket(token)
     }
@@ -99,26 +113,14 @@ export default class Wechat {
     return data
   }
 
-  async updateAccessToken() {
-    const url = api.accessToken + '&appid=' + this.appID + '&secret=' + this.appSecret
-    console.log(url)
-    let data = await this.request({url: url})
-    // console.log('-----------' + data)
-    // data = JSON.parse(data)
-    const now = (new Date().getTime())
-    const expiresIn = now + (data.expires_in - 20) * 1000
-    // console.log('data.expires_in = ' + data.expires_in)
-    // console.log('**********' + data + 'now= ' + now + ' expiresIn= ' + expiresIn)
-    data.expires_in = expiresIn
-    // console.log('+++++++++++' + data)
-    return data
-  }
   async updateTicket(token) {
-    const url = api.ticket.get + '&token=' + token + '&type=jsapi'
-    console.log(url)
+    const url = api.ticket.get + '&access_token=' + token + '&type=jsapi'
+    console.log(' updateTicket ' + url)
     let data = await this.request({url: url})
-    const now = (new Date().getTime())
+    console.log(' ticket data = ' + JSON.stringify(data))
+    const now = new Date().getTime()
     const expiresIn = now + (data.expires_in - 20) * 1000
+    console.log(' ticket data.expires_in = ' + data.expires_in)
     data.expires_in = expiresIn
     return data
   }

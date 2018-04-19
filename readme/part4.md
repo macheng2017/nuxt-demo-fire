@@ -1107,10 +1107,6 @@ pages/about.vue
           'uploadImage',
           'downloadImage',
           'onMenuShareTimeline',
-          'onMenuShareAppMessage',
-          'onMenuShareQQ',
-          'onMenuShareWeibo',
-          'onMenuShareQZone',
           'hideAllNonBaseMenuItem',
           'showMenuItems',
         ]
@@ -1122,7 +1118,6 @@ pages/about.vue
       wx.ready(() => {
         wx.hideAllNonBaseMenuItem()
         console.log('success!')
-
       })
     })
   }
@@ -1166,18 +1161,308 @@ export default {
     return Services.getWechatSignature(url)
   }
 }
+
 ```
 新建 ./services.js
 
 ```js
 import axios from 'axios'
 const baseUrl = ''
-export default class Services {
+class Services {
   getWechatSignature(url) {
     return axios.get(`${baseUrl}/wechat-signature?url=${url}`)
   }
 }
+export default new Service()
 ```
 mutations.js getters.js 暂时未对外空对象
 
 
+
+---
+### 一个有趣的问题
+
+当我定义了一个类并将其在其自身当中new 一个实例并导出
+
+```js 
+
+class Services {
+  getWechatSignature(url) {
+   // ...
+}
+export default new Service()
+
+// 在其他文件中引用的时候不小心写错了
+
+import Services from './Services'
+// 将文件名service 写错成 Service结果,有警告提示
+
+
+There are multiple modules with names that only differ in casing.
+This can lead to unexpected behavior when compiling on a filesystem with other case-semantic.
+Use equal casing. Compare these module identifiers:
+* E:\myGitHub\fire\node_modules\babel-loader\lib\index.js??ref--1!E:\myGitHub\fire\node_modules\eslint-loader\index.js!E:\myGitHub\fire\store\Services.js
+    Used by 1 module(s), i. e.
+    E:\myGitHub\fire\node_modules\babel-loader\lib\index.js??ref--1!E:\myGitHub\fire\node_modules\eslint-loader\index.js!E:\myGitHub\fire\store\actions.js
+* E:\myGitHub\fire\node_modules\babel-loader\lib\index.js??ref--1!E:\myGitHub\fire\node_modules\eslint-loader\index.js!E:\myGitHub\fire\store\services.js
+    Used by 1 module(s), i. e.
+    E:\myGitHub\fire\store /^\.\/(?!-)[^.]+\.(js)$/
+```
+
+* 猜测应该是 将./service文件导入进来了
+* 并且多导入了一份,换了个路径
+* 应该是./Service路径有歧义
+
+
+QA
+
+授权的access_token 和公共号的全局票据access_token有什么区别?
+
+    微信网页授权是基于OAuth2.0 体系是完全独立的,不仅在微信中可以使用而且在其他网站,比如微博github等等 包括自己的网站中都可以使用,让用户手动同意后会颁发一个凭证,这个凭证可以帮助用户登录,也可以帮助服务器获得用户资料,和全局票据access_token,完全不是一个东西,除了名字一样
+
+授权的access_token和 是全局的还是跟每次获取的code要配对?一对一的使用,一个人用一次?
+
+
+授权的reflash token是怎么回事,刷不刷新有什么区别?
+
+    虽然官方提供了token的刷新机制,不是追求很完备的回话体验,可以完全不用理会,只会让你初次接触授权的时候让你的开发难度变大,索性不要实现它,每次只要重新获取即可,如果我们每次获取一个新的token,而且官方也没有设置调用的门槛限制,那么也不用保存这个token,也不用关心和,用户是一对一和一对多的关系,反正每次都要用户来同意授权然后拿着code换token,再拿token获取用户资料就行了
+
+授权的用户资料获取需要什么资质的公众号?
+
+    必须是认证后的服务号,才能在网页中利用OAuth这个机制,来获取用户的信息,订阅号无论是认证还是不认证都是不行的.
+
+
+## 用户授权获取用户资料的流程
+
+整个请求的后端流程
+
+1. 用户来访问我们的页面a 路径/a?a=1&b=2
+2. 后端收到用户访问的请求, url地址 /a 然后将它拼接成跳转地址redirect_url 这个地址是微信的一个地址,只不过拼接了一个参数这个参数值里面的目标地址,假设是b页面 redirect_url = /b 最终返回给用户的就是 redirect_url = /b 这个地址
+3. 当用户点击页面上的同意授权按钮,然后就会二次跳转,就跳到b页面,将上a页面带过来的参数比如商品的id,在b页面可以拿到微信传过来的code 还有state就是从a页面传递过来的参数, /b?code&state,通过拿到的code换区access_token 和openid 然后就能获取用户资料或者可以做一些业务层面的封装
+
+### 新增 wechat-lib/oauth.js
+
+复制 index.js的代码修改
+
+```js
+import request from 'request-promise'
+const base = 'https://api.weixin.qq.com/sns/'
+const api = {
+  // 用来让用户手动同意授权的地址,二跳地址
+  authorize: 'https://open.weixin.qq.com/connect/oauth2/authorize?',
+  // 网页授权token
+  access_token: base + 'oauth2/access_token?',
+  userInfo: base + 'userinfo?'
+}
+
+export default class WechatOAuth {
+  constructor(opts) {
+    this.opts = Object.assign({}, opts)
+
+    this.appID = opts.appID
+    this.appSecret = opts.appSecret
+  }
+  async request(options) {
+    options = Object.assign({}, options, {json: true})
+    try {
+      const response = await request(options)
+      return response
+    } catch (error) {
+      console.error(error)
+    }
+  }
+  // 拼接一个地址拿到 code
+  // 1. 先给一个scope 默认值
+  // 应用授权作用域，snsapi_base （不弹出授权页面，直接跳转，只能获取用户openid），// snsapi_userinfo （弹出授权页面，可通过openid拿到昵称、性别、所在地。并且， 即使// 在未关注的情况下，只要用户授权，也能获取其信息 ）
+  // https://mp.weixin.qq.com/wiki?t=resource/res_main&id=mp1421140842
+  // target 目标地址
+  // state 传递的参数
+  getAuthorizeURL(scope = 'snsapi_base', target, state)){
+    // 拼接
+    const url = `${api.authorize}appid=${this.appID}&redirect_uri=${encodeURIComponent(target)}&response_type=code&scope=${scope}&state=${state}#wechat_redirect`
+    return url
+  }
+  async fetchAccessToken() {
+    // 获取token的地址 code 是微信服务器返回的
+    const url = `${api.authorize}appid=${this.appID}&secret=${this.appSecret}&code=${code}&grant_type=authorization_code`
+
+    const data = await this.request({url: url})
+    return data
+  }
+
+  async getUserInfo (token, openID, lang='zh_CN') {
+    const url = `${api.userInfo}access_token=${token}&openid=${openID}&lang=${lang}`
+    const data = await this.request({url: url})
+    return data
+  }
+}
+
+```
+
+位置: router.js
+
+```js
+import { signature, redirect, oauth } from '../controllers/wechat'
+  router.get('/wechat-signature', signature)
+  // 将用户偷偷跳转到二跳地址
+  router.get('/wechat-redirect', redirect)
+  // 用户跳转过来之后需要通过授权机制获取用户信息
+```
+位置: controllers/wechat.js
+
+```js
+// 拼接好跳转的目标地址,把用户重定向到这个地址
+export async function redirect(ctx, next) {
+  // SITE_ROOT_URL网站根地址
+  const target = config.SITE_ROOT_URL + '/oauth'
+  const scope = 'snsapi_userinfo' 
+  const {a, b} = ctx.query // 拿到的查询参数
+  const params = `${a}_${b}`
+  const url = api.getAuthorizeURL(scope, target, params)
+  // 将用户重定向到新的地址
+  ctx.redirect(url)
+}
+
+```
+
+* // 为什么需要'/oauth'?(const target = config.SITE_ROOT_URL + '/oauth')
+* // 也可以不要授权后跳转地址,自己体会
+* // http://vuespz.viphk.ngrok.org/oauth?code=061IDL2D1AWfr20P1SYC1pvY2D1IDL2Y&state=1_2
+
+位置 api/index.js
+```js
+import {
+  getSignatureAsync,
+  getAuthorizeURL
+} from './wechat'
+
+export {
+  getSignatureAsync,
+  getAuthorizeURL
+}
+
+// 这样就可以在其他文件中通过 import * as api from '../api'
+// 直接通过api来调用所暴露出来的方法了
+
+```
+
+位置 api/wechat.js
+
+```js
+import { getWechat, getOAuth } from '../wechat'
+export async function getAuthorizeURL(...args) {
+  const oauth = getOAuth()
+  return oauth.getAuthorizeURL(...args)
+}
+```
+
+新增/wechat/index.js
+
+新增一个接口,暴露出oauth的实例
+```js
+import WechatOAuth from '../wechat-lib/oauth'
+export const getOAuth = () => {
+  const oauth = new WechatOAuth(wechatConfig.wechat)
+  return oauth
+}
+```
+控制器 controllers/wechat.js
+```js
+import { parse as urlParse } from 'url'
+import { parse as queryParse } from 'querystring'
+
+/ 在router中接收到 redirect的跳转地址
+export async function oauth(ctx, next) {
+  let url = ctx.query.url
+  url = decodeURIComponent(url)
+  // 解析
+  const urlObj = urlParse(url)
+  const params = queryParse(urlObj.query)
+  const code = params.code
+  const user = await api.getUserByCode(code)
+  console.log(' oauth ' + user)
+  ctx.body = {
+    success: true,
+    data: user
+  }
+
+```
+
+位置 api/index.js
+```js
+import {
+  getSignatureAsync,
+  getAuthorizeURL,
+  getUserByCode
+} from './wechat'
+
+export {
+  getSignatureAsync,
+  getAuthorizeURL,
+  getUserByCode
+}
+
+// 这样就可以在其他文件中通过 import * as api from '../api'
+// 直接通过api来调用所暴露出来的方法了
+
+```
+
+位置: api/wechat.js
+```js
+export async function getUserByCode(code) {
+  const oauth = getOAuth()
+  const data = await oauth.fetchAccessToken(code)
+  const user = await oauth.getUserInfo(data.access_token, data.openid)
+  return user
+}
+```
+
+服务端功能完成
+
+## 测试页面
+
+位置pages/oauth.vue
+
+复制about.vue
+
+修改为
+```js
+beforeMount() {
+    const url = window.location.href
+    this.$store.dispatch('getUserByOAuth', encodeURIComponent(url))
+    .then(res => {
+      let params = ''
+      if (res.data.success) {
+        params = res.data.params
+      }
+
+      console.log(' OAuth.vue ' + res.data)
+    })
+  }
+}
+```
+位置 /store/actions.js
+```js
+ getUserByOAuth({ commit }, url) {
+    return Services.getUserByOAuth(url)
+  }
+  ```
+
+在service.js新增
+```js
+ getUserByOAuth(url) {
+    return axios.get(`${baseUrl}/wechat-oauth?url=${url}`)
+  }
+```
+在config中新增
+
+```js
+ SITE_ROOT_URL: 'http://http://vuespz.viphk.ngrok.org',
+ ```
+## 添加回调域名
+ 在测试号的
+https://mp.weixin.qq.com/debug/cgi-bin/sandboxinfo?action=showinfo&t=sandbox/index
+
+* 接口配置信息修改 
+* 体验接口权限表 > 网页服务 > 网页帐号	网页授权获取用户基本信息
+* vuespz.viphk.ngrok.org/

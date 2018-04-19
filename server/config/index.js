@@ -1,5 +1,6 @@
 export default {
   db: 'mongodb://localhost/ice',
+  SITE_ROOT_URL: 'http://vuespz.viphk.ngrok.org',
   wechat: {
     // 这里面内容比较多token, key...
     appID: 'wxf5aeebc328524308',

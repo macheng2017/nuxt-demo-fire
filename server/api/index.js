@@ -1,9 +1,13 @@
 import {
-  getSignatureAsync
+  getSignatureAsync,
+  getAuthorizeURL,
+  getUserByCode
 } from './wechat'
 
 export {
-  getSignatureAsync
+  getSignatureAsync,
+  getAuthorizeURL,
+  getUserByCode
 }
 
 // 这样就可以在其他文件中通过 import * as api from '../api'

@@ -20,7 +20,7 @@ export default {
   beforeMount() {
     const wx = window.wx
     const url = window.location.href
-    this.$store.dispatch('getWechatSignature', url)
+    this.$store.dispatch('getWechatSignature', encodeURIComponent(url))
     .then(res => {
       let params = ''
       if (res.data.success) {
