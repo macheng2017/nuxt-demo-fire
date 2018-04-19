@@ -1284,7 +1284,7 @@ export default class WechatOAuth {
   }
   async fetchAccessToken() {
     // 获取token的地址 code 是微信服务器返回的
-    const url = `${api.authorize}appid=${this.appID}&secret=${this.appSecret}&code=${code}&grant_type=authorization_code`
+    const url = `${api.access_token}appid=${this.appID}&secret=${this.appSecret}&code=${code}&grant_type=authorization_code`
 
     const data = await this.request({url: url})
     return data
