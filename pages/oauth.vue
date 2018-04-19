@@ -25,7 +25,7 @@ export default {
       // if (res.data.success) {
       //   params = res.data.params
       // }
-      console.log(' OAuth.vue ' + res.data)
+      console.log(' OAuth.vue ' + JSON.stringify(res.data))
     })
   }
 }
