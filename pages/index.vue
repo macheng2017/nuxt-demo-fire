@@ -60,18 +60,16 @@
             id: item._id
           }
         })
-      },
-
-      // 在页面加载前获取到数据
-      beforeCreate() {
-        console.log('------------------------')
-        this.$store.dispatch('fetchHouses')
-        this.$store.dispatch('fetchCharacters')
-        this.$store.dispatch('fetchCities')
-      },
-      beforeMount() {
-        console.log('*************************************')
       }
+    },
+    beforeCreate() {
+      console.log('------------------------')
+      this.$store.dispatch('fetchHouses')
+      this.$store.dispatch('fetchCharacters')
+      this.$store.dispatch('fetchCities')
+    },
+    beforeMount() {
+      console.log('*************************************')
     }
   }
 
