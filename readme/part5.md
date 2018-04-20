@@ -1,3 +1,17 @@
+RAP  http://rapapi.org/
+
+位置: pages/index.vue
+
+使用pug
+```js
+<template lang='pug'>
+  .container
+    .house(ref='houses')
+    .characters
+    .cities
+</template>
+
+
 <template lang='pug'>
   .container
     .house(ref='house')
@@ -23,14 +37,15 @@
         .body {{item.boby}}
 </template>
 
+
+
+```
+
+
+```js
 <script>
   import { mapState } from 'vuex'
   export default {
-    asyncData({ req }) {
-      return {
-        name: req ? 'server' : 'client'
-      }
-    },
     head() {
       return {
         title: '冰火脸谱'
@@ -54,31 +69,76 @@
         })
       },
       showCharacter(item) {
-        this.$router.push({
+         this.$router.push({
           path: '/character',
           query: {
             id: item._id
           }
         })
       },
-
       // 在页面加载前获取到数据
       beforeCreate() {
-        console.log('------------------------')
         this.$store.dispatch('fetchHouses')
         this.$store.dispatch('fetchCharacters')
         this.$store.dispatch('fetchCities')
-      },
-      beforeMount() {
-        console.log('*************************************')
+
       }
     }
   }
 
 </script>
-<style scoped>
-.title
-{
-  margin: 50px 0;
-}
-</style>
+```
+
+添加获取数据的的service
+
+位置: store/actions.js
+```js
+ async fetchHouses({ state }) {
+    const res = await Services.fetchHouses()
+    state.houses = res.data.data
+    return res
+  },
+  async fetchCities({ state }) {
+    const res = await Services.fetchCharacters()
+    state.cities = res.data.data
+    return res
+  },
+  async fetchCharacters({ state }) {
+    const res = await Services.fetchCharacters()
+    state.characters = res.data.data
+    return res
+  }
+
+```
+path: store/service.js
+
+```js
+  // 将RAP中的数据前缀复制过来
+  const apiUrl = 'http://rapapi.org/mockjsdata/33508'
+  // 获取家族的数据
+  fetchHouses() {
+    return axios.get(`${apiUrl}/wiki/houses`)
+  }
+  // 获取城市数据
+  fetchCities() {
+    return axios.get(`${apiUrl}/wiki/cities`)
+  }
+  // 获取城市数据
+  fetchCharacters() {
+    return axios.get(`${apiUrl}/wiki/characters`)
+  }
+
+
+```
+path: store/index.js
+在store/index中同步一下
+
+```js
+   state: {
+      houses: [],
+      cities: [],
+      characters: []
+    },
+```
+安装 pug
+yarn add pug

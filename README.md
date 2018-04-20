@@ -31,3 +31,4 @@ For detailed explanation on how things work, checkout the [Nuxt.js docs](https:/
 ## [构建全局票据access_token](./readme/part2.md)
 ## [获取access_token](./readme/part3.md)
 ## [各种消息模板的封装](./readme/part4.md)
+## [利用RAP mock数据](./readme/part5.md)

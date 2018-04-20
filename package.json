@@ -21,6 +21,7 @@
     "koa-router": "^7.4.0",
     "mongoose": "^5.0.13",
     "nuxt": "latest",
+    "pug": "^2.0.3",
     "ramda": "^0.25.0",
     "raw-body": "^2.3.2",
     "request": "^2.85.0",
