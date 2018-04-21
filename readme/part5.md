@@ -143,4 +143,5 @@ path: store/index.js
 安装 pug
 yarn add pug
 
-
+为首页添加css样式
+<style scoped lang='sass' src='~static/sass/index.sass'></style>
