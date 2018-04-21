@@ -99,7 +99,7 @@ RAP  http://rapapi.org/
     return res
   },
   async fetchCities({ state }) {
-    const res = await Services.fetchCharacters()
+    const res = await Services.fetchCities()
     state.cities = res.data.data
     return res
   },
@@ -142,3 +142,5 @@ path: store/index.js
 ```
 安装 pug
 yarn add pug
+
+

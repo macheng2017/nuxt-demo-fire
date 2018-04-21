@@ -12,15 +12,18 @@ class Services {
   }
   // 获取家族的数据
   fetchHouses() {
-    return axios.get(`${apiUrl}/wiki/houses/123`)
+    console.log(`${apiUrl}/wiki/houses`)
+    return axios.get(`${apiUrl}/wiki/houses`)
   }
   // 获取城市数据
   fetchCities() {
-    return axios.get(`${apiUrl}/wiki/city/12`)
+    console.log(`${apiUrl}/wiki/cities`)
+    return axios.get(`${apiUrl}/wiki/cities`)
   }
   // 获取城市数据
   fetchCharacters() {
-    return axios.get(`${apiUrl}/wiki/character/123`)
+    console.log(`${apiUrl}/wiki/characters`)
+    return axios.get(`${apiUrl}/wiki/characters`)
   }
 }
 export default new Services()

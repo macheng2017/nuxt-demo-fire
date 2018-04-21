@@ -9,17 +9,19 @@ export default {
   },
   async fetchHouses({ state }) {
     const res = await Services.fetchHouses()
-    state.houses = res.data
+    // console.log(' data = ' + JSON.stringify(res.data.data))
+    state.houses = res.data.data
     return res
   },
   async fetchCities({ state }) {
-    const res = await Services.fetchCharacters()
-    state.cities = res.data
+    const res = await Services.fetchCities()
+    state.cities = res.data.data
     return res
   },
   async fetchCharacters({ state }) {
     const res = await Services.fetchCharacters()
-    state.characters = res.data
+    // console.log(' data = ' + JSON.stringify(res.data.data))
+    state.characters = res.data.data
     return res
   }
 }

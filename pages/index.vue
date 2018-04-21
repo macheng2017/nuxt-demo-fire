@@ -74,9 +74,4 @@
   }
 
 </script>
-<style scoped>
-.title
-{
-  margin: 50px 0;
-}
-</style>
+<style scoped lang='sass' src='~static/sass/index.sass'></style>
