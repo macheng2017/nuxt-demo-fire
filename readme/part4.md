@@ -792,7 +792,7 @@ export default {
   },{
     'name': '冰火家族',
     'type': 'view',
-    'url': 'http://coding.imooc.com'
+    'url': 'http://www.baidu.com'
   },{
     'name': '最新资源',
     'type': 'location_select',
