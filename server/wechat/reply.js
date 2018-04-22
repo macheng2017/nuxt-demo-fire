@@ -45,6 +45,8 @@ export default async (ctx, next) => {
       const menuData = await client.handle('createMenu', menu)
       console.log('data= ' + JSON.stringify(menuData))
       ctx.body = message.Content
+    } else {
+      ctx.body = message.Content
     }
   } else if (message.MsgType === 'image') {
     console.log('================')
