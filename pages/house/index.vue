@@ -14,13 +14,13 @@
         .desc
           .cname {{item.cname}}
           .intro {{item.text}}
-.house-history(v-for='(item, index) in house.sections' :key='index')
-  .title {{item.title}}
-  .content(v-for='(item, index) in item.content' :key='index'){{text}}
+  .house-history(v-for='(item, index) in house.sections' :key='index')
+    .title {{item.title}}
+    .content(v-for='(item, index) in item.content' :key='index') {{item.text}}
 </template>
 
 <script>
-  import { mapState } from "vux";
+  import { mapState } from 'vuex'
   export default {
     head() {
       return {
@@ -36,7 +36,6 @@
       let id = this.$route.query.id
 
       this.$store.dispatch('showHouse', id)
-
     }
   }
 </script>
