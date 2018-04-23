@@ -8,7 +8,8 @@ const createStore = () => {
     state: {
       houses: [],
       cities: [],
-      characters: []
+      characters: [],
+      currentHouse: {}
     },
     getters,
     actions,

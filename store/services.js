@@ -25,5 +25,10 @@ class Services {
     console.log(`${apiUrl}/wiki/characters`)
     return axios.get(`${apiUrl}/wiki/characters`)
   }
+  // 获取家族的数据
+  fetchHouse(id) {
+    console.log(`${apiUrl}/wiki/house/${id}`)
+    return axios.get(`${apiUrl}/wiki/houses/${id}`)
+  }
 }
 export default new Services()

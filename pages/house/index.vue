@@ -8,7 +8,7 @@
     .title {{house.cname}}
     .body {{house.intro}}
     .title 主要角色
-    .times(v-for='(item, index) in house.swornMembers' :key='index')
+    .body(v-for='(item, index) in house.swornMembers' :key='index')
       .members
         img(:src='item.profile')
         .desc
@@ -16,7 +16,7 @@
           .intro {{item.text}}
   .house-history(v-for='(item, index) in house.sections' :key='index')
     .title {{item.title}}
-    .content(v-for='(item, index) in item.content' :key='index') {{item.text}}
+    .content(v-for='(text, index) in item.content' :key='index') {{text}}
 </template>
 
 <script>
@@ -29,7 +29,7 @@
     },
     computed: {
       ...mapState({
-        house: 'showHouse'
+        house: 'currentHouse'
       })
     },
     beforeCreate() {
@@ -39,3 +39,4 @@
     }
   }
 </script>
+<style lang='sass' scoped src='static/sass/house.sass' ></style>
