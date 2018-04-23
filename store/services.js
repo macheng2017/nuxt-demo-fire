@@ -27,7 +27,7 @@ class Services {
   }
   // 获取家族的数据
   fetchHouse(id) {
-    console.log(`${apiUrl}/wiki/house/${id}`)
+    console.log(`${apiUrl}/wiki/houses/${id}`)
     return axios.get(`${apiUrl}/wiki/houses/${id}`)
   }
 }

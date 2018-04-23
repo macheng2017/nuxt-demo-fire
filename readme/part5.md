@@ -769,6 +769,12 @@ export default {
 位置: store/services.js
 
 ```js
-
-
+  // 获取家族的数据
+  fetchHouse(id) {
+    return axios.get(`${apiUrl}/wiki/houses/${id}`)
+  }
+}
 ```
+
+新建家族主页
+

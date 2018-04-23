@@ -14,9 +14,10 @@
         .desc
           .cname {{item.cname}}
           .intro {{item.text}}
-  .house-history(v-for='(item, index) in house.sections' :key='index')
-    .title {{item.title}}
-    .content(v-for='(text, index) in item.content' :key='index') {{text}}
+
+    .house-history(v-for='item in house.sections')
+      .title {{item.title}}
+      .content(v-for='(text, index) in item.content' :key='index') {{text}}
 </template>
 
 <script>
