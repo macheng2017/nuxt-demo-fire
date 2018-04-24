@@ -842,16 +842,167 @@ export default {
 位置: components/nav.vue
 
 ```js
+<template lang='pug'>
+  nav#nav(v-if='navVisble')
+    nuxt-link(v-for='(item, index) in navList' :to='item.path' :key='index')
+      //- 判断当前导航是哪一个
+      div(v-if='index === 0')
+        img(v-if='activeRoute !== item.name' src='~static/img/home.png')
+        img(v-else src='~static/img/home-selected.png')
+      div(v-else-if='index === 1')
+        img(v-if='activeRoute !== item.name' src='~static/img/shopping.png')
+        img(v-else src='~static/img/home-selected.png')
+      div(v-else)
+        img(v-if='activeRoute !== item.name' src='~static/img/user.png')
+        img(v-else src='~static/img/home-selected.png')
+      p {{item.text}}
 
+</template>
+
+<script>
+  export default {
+    data() {
+      return {
+        navList: [
+          {
+            'path': '/',
+            'name': 'index',
+            'text': '脸谱'
+          },
+          {
+            'path': '/shopping',
+            'name': 'shopping',
+            'text': '周边手办'
+          },
+          {
+            'path': '/user',
+            'name': 'user',
+            'text': '我的账户'
+          }
+        ]
+      }
+    },
+
+    computed: {
+      activeRoute() {
+        return this.$route.name
+      },
+      navVisble() {
+        // 如果匹配到数组中的任意一个则返回true
+        return ['index', 'shopping', 'user'].indexOf(this.activeRoute) > -1
+        // return this.activeRoute === 'index' || 'shopping' || 'user'
+      }
+    }
+}
+</script>
+<style lang="sass" scoped src='static/sass/nav.sass'></style>
 
 ```
 在RAP中增加页面
 
-增加 pages/shopping/index.vue
+## 增加商品页面 pages/shopping/index.vue
 
 复制 house.vue
 
 ```js
+<template lang="pug">
+.container
+  .shopping
+    .title 权游周边
+    .list
+      .items(v-for='(item, index) in products' :key = 'index' @click='showProduct(item)')
+        img(:src='item.images[0]')
+        .body
+          .title {{item.title}}
+          .content {{item.intro}}
+
+</template>
+
+<script>
+  import { mapState } from 'vuex'
+  export default {
+    head() {
+      return {
+        title: '手办商城'
+      }
+    },
+    computed: {
+      ...mapState([
+        'products'
+      ])
+    },
+    methods: {
+      showProduct(item) {
+        this.$router.push({
+          path: '/deal',
+          query: {
+            id: item._id
+          }
+        })
+      }
+    },
+    beforeCreate() {
+      // let id = this.$route.query.id
+      this.$store.dispatch('fetchProducts')
+    }
+  }
+</script>
+<style lang='sass' scoped src='static/sass/shopping.sass' ></style>
+
+```
+
+### 增加 actions.js
+
+```js
+  async fetchProducts({ state }) {
+    // id相同即为当前页,返回
+    const res = await Services.fetchProducts()
+    // console.log(' fetchProducts data = ' + JSON.stringify(res.data))
+    state.products = res.data.data
+    return res
+  }
+
+```
+### 添加 /store/service.js
+
+```js
+  fetchProducts() {
+    return axios.get(`${apiUrl}/wiki/products`)
+  }
+
+```
+
+### 添加字段 /store/index.js
+
+```js
+    state: {
+      houses: [],
+      cities: [],
+      characters: [],
+      products: [],
+      currentHouse: {},
+      currentCharacter: {}
+    },
 
 
 ```
+
+```js
+
+
+
+```
+
+```js
+
+
+
+```
+
+```js
+
+
+
+```
+
+

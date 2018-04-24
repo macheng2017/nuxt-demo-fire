@@ -36,13 +36,14 @@ export default {
     // id相同即为当前页,返回
     if (_id === state.currentCharacter._id) return
     const res = await Services.fetchCharacter(_id)
-    console.log(' showCharacter data = ' + JSON.stringify(res.data.data))
+    // console.log(' showCharacter data = ' + JSON.stringify(res.data.data))
     state.currentCharacter = res.data.data
     return res
   },
-  async fetchProducts({ state }, _id) {
+  async fetchProducts({ state }) {
     // id相同即为当前页,返回
-    const res = await Services.fetchProducts(_id)
+    const res = await Services.fetchProducts()
+    // console.log(' fetchProducts data = ' + JSON.stringify(res.data))
     state.products = res.data.data
     return res
   }

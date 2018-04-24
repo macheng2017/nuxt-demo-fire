@@ -3,7 +3,8 @@
   .shopping
     .title 权游周边
     .list
-      .item(v-for='(item, index) in products' :key = 'index' @click='showProduct(item)')
+      .items(v-for='(item, index) in products' :key = 'index' @click='showProduct(item)')
+        img(:src='item.images[0]')
         .body
           .title {{item.title}}
           .content {{item.intro}}
