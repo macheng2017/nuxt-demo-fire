@@ -31,5 +31,13 @@ export default {
     const res = await Services.fetchHouse(_id)
     state.currentHouse = res.data.data
     return res
+  },
+  async showCharacter({ state }, _id) {
+    // id相同即为当前页,返回
+    if (_id === state.currentCharacter._id) return
+    const res = await Services.fetchCharacter(_id)
+    console.log(' showCharacter data = ' + JSON.stringify(res.data.data))
+    state.currentCharacter = res.data.data
+    return res
   }
 }
