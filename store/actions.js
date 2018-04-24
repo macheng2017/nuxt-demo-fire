@@ -46,5 +46,12 @@ export default {
     // console.log(' fetchProducts data = ' + JSON.stringify(res.data))
     state.products = res.data.data
     return res
+  },
+  async showProduct({ state }, _id) {
+    if (_id === state.currentProduct._id) return
+    const res = await Services.fetchProduct(_id)
+    // console.log(' fetchProducts data = ' + JSON.stringify(res.data))
+    state.currentProduct = res.data.data
+    return res
   }
 }

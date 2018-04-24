@@ -6,12 +6,13 @@ module.exports = {
     title: 'starter',
     meta: [
       { charset: 'utf-8' },
-      { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+      // { name: 'viewport', content: 'width=device-width, initial-scale=1' },
       { hid: 'description', name: 'description', content: 'Nuxt.js project' }
     ],
     link: [
       { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }
     ],
+    // 能够根据设备自动适配
     script: [
       {
         src: 'http://g.tbcdn.cn/mtb/lib-flexible/0.3.4/??flexible_css.js,flexible.js'
@@ -25,12 +26,22 @@ module.exports = {
   ** Global CSS
   */
   // css: ['static/css/main.css'],
-  // css: [ // 加上后页面固定,先注释掉
-  //   {
-  //     src: 'static/sass/base.sass',
-  //     lang: 'sass?indentedSyntax=true'
-  //   }
-  // ],
+  css: [ // 加上后页面固定,先注释掉
+    // {
+    //   src: 'static/sass/base.sass',
+    //   lang: 'sass?indentedSyntax=true'
+    // },
+    {
+      src: 'swiper/dist/css/swiper.css'
+    }
+  ],
+
+ // 存放外部依赖的轮播插件
+  plugins: [
+    {
+      src: '~/plugins/swiper.js', ssr: false
+    }
+  ],
   /*
   ** Customize the progress-bar color
   */

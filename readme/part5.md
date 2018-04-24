@@ -986,23 +986,219 @@ export default {
 
 
 ```
+## 增加购买详情页 pages/dell/index.vue
+
+### 复制shopping页面中的代码
 
 ```js
+<template lang="pug">
+.container
+  .product
+    //- 放置一个轮播组件
+    .swiper(v-swiper='swiperConfig')
+      .swiper-wrapper
+        .swiper-slide(v-for='item in product.images')
+          img(:src='item')
+      //- 轮播的翻页
+      .swiper-pagination.swiper-pagination-bullets
+    //- 内容区
+    .content
+      .price(v-if='product.price')
+        //-  控制价格显示的样式, 取到小数点后两位
+        span.main-price {{product.price.toFixed(2) - product.price.toFixed(2).substr(-3)}}
+        span.other-price {{product.price.toFixed(2).substr(-3)}}
+
+    .name {{product.name}}
+    .intro {{product.intro}}
+    .info
+      //- cell 是封装好的组件
+      cell(v-for='(item, index) in product.parameters' :key='index' title='item.key' :content='item.value'
+      :title='item.key' :content='item.value')
+
+    .attentions
+      .title 购买提示
+      ol
+        li(v-for='item in attentions') {{item}}
+
+  .product-footer
+    span(@click='buyProduct') 购买
+</template>
+
+<script>
+  import cell from '~/components/cell.vue'
+  import { mapState } from 'vuex'
+import { identifier } from 'babel-types';
+  export default {
+    head() {
+      return {
+        title: '购买页面'
+      }
+    },
+    data() {
+      return {
+        swiperConfig: {
+          autoplay: 4000,
+          direction: 'horizontal',
+          loop: true,
+          pagination: '.swiper-pagination',
+        },
+        attentions: [
+          '商品和服务的差异',
+          '清关服务',
+          '物流服务',
+          '需要更多帮助,请联系管理员'
+        ]
+      }
+    },
+    computed: {
+      ...mapState({
+        'product': 'currentProduct'
+      })
+    },
+    methods: {
+      buyProduct(item) {
+        console.log(item)
+     // 支付功能暂未实现
+      }
+    },
+    beforeCreate() {
+      const id = this.$route.query.id
+      this.$store.dispatch('showProduct', id)
+    },
+    components: {
+      cell
+    }
+  }
+</script>
+<style lang='sass' scoped src='static/sass/deal.sass' ></style>
 
 
 
 ```
+## 增加 /components/cell.vue
 
 ```js
+<template lang='pug'>
+  .cell
+    span {{title}}
+    span(v-for='content') {{content}}
+</template>
+
+<script>
+  export default {
+    props: {
+      title: String,
+      content: Number
+    }
+}
+</script>
+<style lang="sass">
+@import '../static/sass/color'
+@import '../static/sass/mixin'
+
+.cell
+  width: 100%
+  font-size: 0
+
+  > *
+    vertical-align: middle
+    display: inline-block
+
+  span
+    width: 50%
+    text-align: left
+    +font-dpr(15px)
+
+  .material-icon
+    width: 50%
+    text-align: right
+    +font-dpr(33px)
+    color: $grey-800
+</style>
 
 
 
 ```
+修改 /store/action.js
+修改 /store/index.js
+修改 /store/service.js
 
 ```js
+  async showProduct({ state }, _id) {
+    if (_id === state.currentProduct._id) return
+    const res = await Services.fetchProduct()
+    // console.log(' fetchProducts data = ' + JSON.stringify(res.data))
+    state.currentProduct = res.data.data
+    return res
+  }
 
+```
+```js
+currentProduct: [],
+
+```
+
+```js
+  fetchProduct(id) {
+    console.log(`${apiUrl}/wiki/products`)
+    return axios.get(`${apiUrl}/wiki/products/${id}`)
+  }
+```
+
+
+
+
+修改 nuxt.config
+添加轮播插件
+
+```js
+// 注释这一行,否则锁定了视口的倍数
+ // { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+ // 添加脚本
+
+  // 能够根据设备自动适配
+    script: [
+      {
+        src: 'http://g.tbcdn.cn/mtb/lib-flexible/0.3.4/??flexible_css.js,flexible.js'
+      },
+      {
+        src: 'http://res.wx.qq.com/open/js/jweixin-1.2.0.js'
+      }
+    ]
+// ...
+
+ // 存放外部依赖的轮播插件
+  plugins: [
+    {
+      src: 'plugins/swiper.js', ssr: false
+    }
+  ],
 
 
 ```
+
+## 新增 /plugins
+
+滚动插件
+swiper.js
+
+```js
+import Vue from 'vue'
+// 判断当前环境,报错后,根据文档修改
+// if (process.BROWSER_BUILD) {
+if (process.browser) {
+  const VueAwesomeSwiper = require('vue-awesome-swiper/dist/ssr')
+  Vue.use(VueAwesomeSwiper)
+}
+
+
+```
+
+surmon-china/vue-awesome-swiper: 🏆 Swiper component for @vuejs  https://github.com/surmon-china/vue-awesome-swiper
+
+
+添加RAP 数据页
+复制 手办列表
+/周边手办/手办详情数据
 
 
