@@ -14,6 +14,9 @@ module.exports = {
     ],
     script: [
       {
+        src: 'http://g.tbcdn.cn/mtb/lib-flexible/0.3.4/??flexible_css.js,flexible.js'
+      },
+      {
         src: 'http://res.wx.qq.com/open/js/jweixin-1.2.0.js'
       }
     ]
@@ -21,13 +24,13 @@ module.exports = {
   /*
   ** Global CSS
   */
-  css: ['~static/css/main.css'],
-  // css: [ // 加上后页面固定,先注释掉
-  //   {
-  //     src: 'static/sass/base.sass',
-  //     lang: 'sass?indentedSyntax=true'
-  //   }
-  // ],
+  // css: ['~static/css/main.css'],
+  css: [ // 加上后页面固定,先注释掉
+    {
+      src: '~/static/sass/base.sass',
+      lang: 'sass?indentedSyntax=true'
+    }
+  ],
   /*
   ** Customize the progress-bar color
   */

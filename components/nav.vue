@@ -3,14 +3,14 @@
     nuxt-link(v-for='(item, index) in navList' :to='item.path' :key='index')
       //- 判断当前导航是哪一个
       div(v-if='index === 0')
-        img(v-if='activeRoute !== item.name' src='~/static/img/home.png')
-        img(v-else src='~/static/img/home-selected.png')
+        img(v-if='activeRoute !== item.name' src='~static/img/home.png')
+        img(v-else src='~static/img/home-selected.png')
       div(v-else-if='index === 1')
-        img(v-if='activeRoute !== item.name' src='~/static/img/shopping.png')
-        img(v-else src='~/static/img/home-selected.png')
+        img(v-if='activeRoute !== item.name' src='~static/img/shopping.png')
+        img(v-else src='~static/img/home-selected.png')
       div(v-else)
-        img(v-if='activeRoute !== item.name' src='~/static/img/user.png')
-        img(v-else src='~/static/img/home-selected.png')
+        img(v-if='activeRoute !== item.name' src='~static/img/user.png')
+        img(v-else src='~static/img/home-selected.png')
       p {{item.text}}
 
 </template>
@@ -51,4 +51,4 @@
     }
 }
 </script>
-<style lang="sass" scoped src='~/static/sass/nav.sass'></style>
+<style lang="sass" scoped src='static/sass/nav.sass'></style>

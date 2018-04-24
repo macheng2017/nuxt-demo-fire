@@ -2,7 +2,6 @@ import Koa from 'koa'
 import { Nuxt, Builder } from 'nuxt'
 import R from 'ramda'
 import { resolve } from 'path'
-const MIDDLEWARES = ['database', 'router']
 // Import and Set Nuxt.js options
 let config = require('../nuxt.config.js')
 config.dev = !(process.env === 'production')
@@ -10,6 +9,7 @@ config.dev = !(process.env === 'production')
 const r = path => resolve(__dirname, path)
 const host = process.env.HOST || '127.0.0.1'
 const port = process.env.PORT || 3000
+const MIDDLEWARES = ['database', 'router']
 
 // 将start重新包装改成class形式
 
@@ -32,8 +32,13 @@ class Server {
     const nuxt = new Nuxt(config)
     // Build in development
     if (config.dev) {
-      const builder = new Builder(nuxt)
-      await builder.build()
+      try {
+        const builder = new Builder(nuxt)
+        await builder.build()
+      } catch (e) {
+        console.error(e)
+        process.exit(1)
+      }
     }
 
     this.app.use(async (ctx, next) => {

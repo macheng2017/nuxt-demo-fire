@@ -845,3 +845,13 @@ export default {
 
 
 ```
+在RAP中增加页面
+
+增加 pages/shopping/index.vue
+
+复制 house.vue
+
+```js
+
+
+```
