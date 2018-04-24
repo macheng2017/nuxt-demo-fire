@@ -39,5 +39,11 @@ export default {
     console.log(' showCharacter data = ' + JSON.stringify(res.data.data))
     state.currentCharacter = res.data.data
     return res
+  },
+  async fetchProducts({ state }, _id) {
+    // id相同即为当前页,返回
+    const res = await Services.fetchProducts(_id)
+    state.products = res.data.data
+    return res
   }
 }

@@ -9,6 +9,7 @@ const createStore = () => {
       houses: [],
       cities: [],
       characters: [],
+      products: [],
       currentHouse: {},
       currentCharacter: {}
     },
