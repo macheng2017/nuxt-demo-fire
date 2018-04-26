@@ -53,5 +53,11 @@ export default {
     // console.log(' fetchProducts data = ' + JSON.stringify(res.data))
     state.currentProduct = res.data.data
     return res
+  },
+  async fetchUserAndOrders({ state }) {
+    const res = await Services.fetchUserAndOrders()
+    // console.log(' fetchProducts data = ' + JSON.stringify(res.data))
+    state.user = res.data.data
+    return res
   }
 }

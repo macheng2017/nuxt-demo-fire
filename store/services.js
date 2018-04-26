@@ -43,5 +43,9 @@ class Services {
     console.log(`${apiUrl}/wiki/products/${id}`)
     return axios.get(`${apiUrl}/wiki/products/${id}`)
   }
+  fetchUserAndOrders() {
+    console.log(`${apiUrl}/wiki/user`)
+    return axios.get(`${apiUrl}/wiki/user`)
+  }
 }
 export default new Services()

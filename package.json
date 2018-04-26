@@ -37,7 +37,6 @@
     "babel-eslint": "^7.1.1",
     "babel-polyfill": "^6.26.0",
     "babel-preset-latest-node": "^1.0.0",
-    "babel-preset-stage-2": "^6.24.1",
     "babel-preset-stage-3": "^6.24.1",
     "backpack-core": "^0.3.0",
     "eslint": "^3.13.1",
