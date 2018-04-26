@@ -12,7 +12,6 @@ const createStore = () => {
       products: [],
       currentProduct: [],
       user: null,
-      orders: [],
       currentHouse: {},
       currentCharacter: {}
     },

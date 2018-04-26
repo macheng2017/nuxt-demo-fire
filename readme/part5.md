@@ -1208,10 +1208,10 @@ surmon-china/vue-awesome-swiper: 🏆 Swiper component for @vuejs  https://githu
 ```js
 <template lang="pug">
 .container
-  .user
+  .user(v-if='user')
     .user-header
       .text {{user.nickname}}
-      img(:src='user.avatarUrl')
+      img(:src='user.avatar')
     .user-address
       cell(title='收货地址')
       .user-content {{user.address}}
@@ -1221,20 +1221,20 @@ surmon-china/vue-awesome-swiper: 🏆 Swiper component for @vuejs  https://githu
     .user-name
       cell(title='姓名')
       .user-content {{user.name}}
-    .user-order
+    .user-order(v-if='user.orders && user.orders.length > 0')
       cell(title='我的订单')
-      .user-order-items(v-for='i in 10' :key='i')
-        img(:src='productImg')
+      .user-order-items(v-for='(item, index) in user.orders' :key='index')
+        img(:src='item.image')
         .user-order-intro
-          .title 手办
-          .content Winter is coming !
+          .title {{item.title}}
+          .content {{item.intro}}
         .user-order-price
-          span $199.0
+          span {{item.price}}
 </template>
 
 <script>
   import cell from '~/components/cell.vue'
-  // import { mapState } from 'vuex'
+  import { mapState } from 'vuex'
 
   export default {
     head() {
@@ -1242,25 +1242,25 @@ surmon-china/vue-awesome-swiper: 🏆 Swiper component for @vuejs  https://githu
         title: '个人账户'
       }
     },
-    data() {
-      return {
-        user: {
-          nickname: '水电费',
-          address: '第三个防守打法',
-          phoneNumber: 32432432432,
-          name: '防守打法',
-          avatarUrl: 'http://www.qqzhi.com/uploadpic/2014-09-23/000247589.jpg'
-        },
-        productImg: 'http://img4.imgtn.bdimg.com/it/u=2015411736,3131482880&fm=27&gp=0.jpg'
-      }
-    },
-    // computed: {
-    //   // 映射到mapState
-    //   ...mapState([
-    //     'user',
-    //     'orders'
-    //   ])
+    // data() {
+    //   return {
+    //     user: {
+    //       nickname: '水电费',
+    //       address: '第三个防守打法',
+    //       phoneNumber: 32432432432,
+    //       name: '防守打法',
+    //       avatarUrl: 'http://www.qqzhi.com/uploadpic/2014-09-23/000247589.jpg'
+    //     },
+    //     productImg: 'http://img4.imgtn.bdimg.com/it/u=2015411736,3131482880&fm=27&gp=0.jpg'
+    //   }
     // },
+    computed: {
+      // 映射到mapState
+      ...mapState([
+        'user',
+        'orders'
+      ])
+    },
     methods: {},
     components: {
       cell
@@ -1285,20 +1285,20 @@ surmon-china/vue-awesome-swiper: 🏆 Swiper component for @vuejs  https://githu
 ## store/index.js
 ```js
  user: null,
- orders: [],
+//  orders: [],
 
 ```
 ## /store/service.js
 
 ```js
   fetchUserAndOrders() {
-    console.log(`${apiUrl}/wiki/user`)
-    return axios.get(`${apiUrl}/wiki/user`)
+    console.log(`${apiUrl}/api/user`)
+    return axios.get(`${apiUrl}/api/user`)
   }
 
 ```
 
-在RAP中添加 账户页面
+在RAP中添加 账户页面 然后修改删除上面的假数据
 
 ```js
 
