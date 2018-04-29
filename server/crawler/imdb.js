@@ -34,9 +34,14 @@ export const getIMDBCharacters = async() => {
   })
 
 // 通过ramda 将
-const fn = R.compose(
 
-  R.filter(photo => photo.playedBy && )
+const fn = R.compose(
+// 3. 过滤整条数据之后,通过map遍历数据
+  R.map(),
+// 1. 先倒着写,通过filter拿到push到photo上的元数据,确定下数据是否完整
+// 2. 只有当4个字段都有,才会将数据进行分析,通过R.compose可以倒着实现流程,最右边函数的结果就是左边函数的输入
+  R.filter(photo => photo.playedBy && photo.name && photo.nmId && photo.chId)
+
 )
 }
 
