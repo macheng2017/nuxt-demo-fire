@@ -2,17 +2,25 @@ import cheerio from 'cheerio'
 import rp from 'request-promise'
 import R from 'ramda'
 import fs from 'fs'
+// import Agent from 'socks5-http-client/lib/Agent'
 
 export const getIMDBCharacters = async() => {
   const options = {
-    uri: 'https://www.imdb.com/title/tt0944947/fullcredits?ref_=tt_cl_sm#cast',
+    uri: 'http://www.imdb.com/title/tt0944947/fullcredits?ref_=tt_cl_sm#cast',
     // 使用cheerio进行解析
+    // 网速过慢可以开启代理
+    // agentClass: Agent,
+    // agentOptions: {
+    //   socksHost: 'localhost',
+    //   socksPort: 3118
+    // },
     transform: body => cheerio.load(body)
   }
-  const $ = await rp(options)
+
   // 通过选择器拿到数据
   // 遍历数据
   let photos = []
+  const $ = await rp(options)
   $('table.cast_list tr.odd, tr.even').each(function () {
     // 当前dom节点上的id
     const nmIdDom = $(this).find('td.itemprop a')
@@ -22,7 +30,7 @@ export const getIMDBCharacters = async() => {
     const characterDom = $(this).find('td.character a')
     const name = characterDom.text()
     const chId = characterDom.attr('href')
-    console.log(' chId ' + chId)
+    // console.log(' chId ' + chId)
 
     const playedByDom = $(this).find('td.itemprop span.itemprop')
     const playedBy = playedByDom.text()
@@ -38,20 +46,26 @@ export const getIMDBCharacters = async() => {
 // 通过ramda 将
 
   const fn = R.compose(
+// 6. 再过滤一遍,将不符合要求的数据过滤出去
+  R.filter(photo => photo.playedBy && photo.name && photo.nmId && photo.chId !== '#'),
 // 3. 过滤整条数据之后,通过map遍历数据
   R.map(photo => {
 // 5. 构建一个正则,将cmid拿出来
     const reg1 = /\/name\/(.*?)\/\?ref/
-    const reg2 = /\/character\/(.*?)\/\?ref/
-    console.log(' reg1 ' + reg1)
-    console.log(' nmId' + photo.nmId)
-    const mache1 = photo.nmId.match(reg1)
-    const mache2 = photo.chId.match(reg2)
-    console.log(' mache1 ' + mache1)
-    console.log(' mache2 ' + mache2)
+    const reg2 = /\/title\/tt0944947\/characters\/(.*?)\?ref/
+    // console.log(' reg1 ' + reg1)
+    // console.log(' reg2 ' + reg2)
+    // console.log(' nmId ' + photo.nmId)
+    // console.log(' chId ' + photo.chId)
+    const match1 = photo.nmId.match(reg1)
+    const match2 = photo.chId.match(reg2)
+    // console.log(' match1 ' + match1)
+    // console.log(' match2 ' + match2)
 
-    photo.nmId = mache1[1]
-    photo.chId = mache2[1]
+    photo.nmId = match1[1]
+    if (match2) {
+      photo.chId = match2[1]
+    }
     // 4. 最终返回的还是photo
     return photo
   }),
@@ -66,4 +80,4 @@ export const getIMDBCharacters = async() => {
   fs.writeFileSync('./imdb.json', JSON.stringify(photos, null, 2), 'utf8')
 }
 
-getIMDBCharacters()
+getIMDBCharacters().catch(err => console.log(err))

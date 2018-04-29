@@ -8,4 +8,5 @@ require('babel-core/register')({
 })
 // 通过babel的编译才能放心使用es6 的语法
 require('babel-polyfill')
-require('./server/crawler/imdb')
+// require('./server/crawler/imdb')
+require('./server/crawler/api')
