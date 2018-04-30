@@ -2,6 +2,7 @@ import cheerio from 'cheerio'
 import rp from 'request-promise'
 import R from 'ramda'
 import fs from 'fs'
+import { resolve } from 'path'
 // import Agent from 'socks5-http-client/lib/Agent'
 
 export const getIMDBCharacters = async() => {
@@ -80,4 +81,19 @@ export const getIMDBCharacters = async() => {
   fs.writeFileSync('./imdb.json', JSON.stringify(photos, null, 2), 'utf8')
 }
 
-getIMDBCharacters().catch(err => console.log(err))
+// getIMDBCharacters().catch(err => console.log(err))
+
+// 新增爬取头像的方法
+export const getIMDbProfile = async () => {
+  // 遍历数据
+  const characters = require(resolve(__dirname, '../../wikiCharacters.json'))
+
+  for (let i = 0; i < characters.length; i++) {
+    // 判断这个对象如果没有profile,则添加
+    if (characters[i].profile) {
+      // 构建url的请求地址,也就是角色主页
+      const url = `https://www.imdb.com/title/tt0944947/characters/nm0318821?ref_=ttfc_fc_cl_t11`
+
+    }
+  }
+}

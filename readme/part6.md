@@ -205,7 +205,40 @@ https://anapioficeandfire.com/
 位置 /server/crawler/api.js
 复制imdb.js修改
 
+```js
+// import cheerio from 'cheerio'
+import rp from 'request-promise'
+import _ from 'lodash'
+import fs from 'fs'
+let characters = []
 
+const sleep = time => new Promise(resolve => setTimeout(resolve, time))
+export const getAPICharacters = async(page = 1) => {
+  const url = `http://www.anapioficeandfire.com/api/characters?page=${page}&pageSize=50`
+    // 返回的是json数据不需要对页面进行dom分析
+  console.log('正在爬第 ' + page + ' 页数据')
+  let body = await rp(url)
+  body = JSON.parse(body)
+  console.log('爬到  ' + body.length + ' 条数据')
+  // 拼接数组的数据
+  characters = _.union(characters, body)
+  console.log('现有  ' + characters.length + ' 条数据')
+  // 如果数据小于50则停止
+  if (body.length < 50) {
+    console.log('爬完了')
+    return
+  } else {
+    // 将数据写到本地,设置为追加模式
+    fs.writeFileSync('./characters.json', JSON.stringify(characters, null, 2), 'utf8')
+    // 间歇时间
+    await sleep(1000)
+    page++
+    getAPICharacters(page).catch(err => console.log(err))
+  }
+}
+
+getAPICharacters().catch(err => console.log(err))
+```
 
 
 https://www.cnblogs.com/chyingp/p/node-guide-file-write.html
@@ -217,4 +250,68 @@ start.js
 ```js
 // require('./server/crawler/imdb')
 require('./server/crawler/api')
+```
+
+
+## 校对
+```js
+import { resolve } from 'path'
+import R from 'ramda'
+import { find } from 'lodash'
+import { writeFileSync } from 'fs'
+
+// 比对爬到的数据
+const characters = require(resolve(__dirname, '../../characters.json'))
+const IMDbData = require(resolve(__dirname, '../../imdb.json'))
+// 定义比对规则
+const findNameInAPI = (item) => {
+  return find(characters, {
+    name: item.name
+  })
+}
+// 同一个角色,在不同的年龄段有不同的扮演者,在API中playedBy是一个数组
+const findPlayedByInAPI = (item) => {
+  return find(characters, i => {
+    return i.playedBy.includes(item.playedBy)
+  })
+}
+
+const validData = R.filter(
+  // 比对imdb的名字,在不在另外爬到的api里面,如果在就是合法的
+  i => findNameInAPI(i) && findPlayedByInAPI(i)
+)
+
+const IMDb = validData(IMDbData)
+
+// 把文件写到本地
+writeFileSync('./wikiCharacters.json', JSON.stringify(IMDb, null, 2), 'utf8')
+
+
+```
+## 爬取头像信息
+
+分析需要爬取的图片位置,由于imdb网站改版,需要重新对演员的图片位置定位分析
+
+https://www.imdb.com/title/tt0944947/fullcredits?ref_=tt_cl_sm#cast
+
+第一个演员的角色图片
+我们只要获取本页面中photos第一张图片地址即可
+https://www.imdb.com/title/tt0944947/characters/nm0227759?ref_=ttfc_fc_cl_t1
+
+
+https://ia.media-imdb.com/images/M/MV5BODI3ODA5NTQ5OF5BMl5BanBnXkFtZTgwODkzODMzMzI@._V1_SY100_CR25,0,100,100_AL_.jpg
+
+去掉限制参数
+
+https://ia.media-imdb.com/images/M/MV5BODI3ODA5NTQ5OF5BMl5BanBnXkFtZTgwODkzODMzMzI@.jpg
+
+
+位置imdb.js
+
+新增爬取头像的方法
+
+```js
+import { resolve } from 'path'
+
+
 ```

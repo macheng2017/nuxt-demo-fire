@@ -2,14 +2,25 @@
 import rp from 'request-promise'
 import _ from 'lodash'
 import fs from 'fs'
+// import Agent from 'socks5-http-client/lib/Agent'
 let characters = []
 
 const sleep = time => new Promise(resolve => setTimeout(resolve, time))
 export const getAPICharacters = async(page = 1) => {
-  const url = `http://www.anapioficeandfire.com/api/characters?page=${page}&pageSize=50`
+  const options = {
+    uri: `http://www.anapioficeandfire.com/api/characters?page=${page}&pageSize=50`,
+    // 使用cheerio进行解析
+    // 网速过慢可以开启代理
+    // agentClass: Agent,
+    // agentOptions: {
+    //   socksHost: 'localhost',
+    //   socksPort: 3118
+    // }
+  }
+  // const url = `http://www.anapioficeandfire.com/api/characters?page=${page}&pageSize=50`
     // 返回的是json数据不需要对页面进行dom分析
   console.log('正在爬第 ' + page + ' 页数据')
-  let body = await rp(url)
+  let body = await rp(options)
   body = JSON.parse(body)
   console.log('爬到  ' + body.length + ' 条数据')
   // 拼接数组的数据
