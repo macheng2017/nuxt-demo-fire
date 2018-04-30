@@ -288,6 +288,10 @@ writeFileSync('./wikiCharacters.json', JSON.stringify(IMDb, null, 2), 'utf8')
 
 
 ```
+https://lodash.com/docs/4.17.10#find
+https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array/includes
+http://ramda.cn/docs/#filter
+
 ## 爬取头像信息
 
 分析需要爬取的图片位置,由于imdb网站改版,需要重新对演员的图片位置定位分析
@@ -308,10 +312,97 @@ https://ia.media-imdb.com/images/M/MV5BODI3ODA5NTQ5OF5BMl5BanBnXkFtZTgwODkzODMzM
 
 位置imdb.js
 
-新增爬取头像的方法
+## 新增爬取头像的方法
 
 ```js
 import { resolve } from 'path'
+const fetchIMDbProfile = async (url) => {
+  // 5.structure options object
+  // 6.copy options object code of the example above
+  const options = {
+    uri: url,
+    // 使用cheerio进行解析
+    // 网速过慢可以开启代理
+    // agentClass: Agent,
+    // agentOptions: {
+    //   socksHost: 'localhost',
+    //   socksPort: 3118
+    // },
+    transform: body => cheerio.load(body)
+  }
+  // 7.Node that the following is identical in meaning to the example above
+  const $ = await rp(options)
+  // 8.for example, will you get that element for <a></a> such as
+  const img = $('a[class="titlecharacters-image-grid__thumbnail-link"] img')
+  // 9.declare the src
+  let src = img.attr('src')
+  // 10.decide this src make sure that is not null && empty
+  if (src) {
+    //  split string up into several part  whit '_v1'
+    // The shift() method removes the first element from an array and returns that removed element.
+    // This method changes the length of the array
+    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/shift
+    src = src.split('_V1').shift()
+    src += '_V1.jpg'
+  }
+  return src
+}
+const sleep = time => new Promise(resolve => setTimeout(resolve, time))
+// 1新增爬取头像的方法
+export const getIMDbProfile = async () => {
+  // 2 遍历数据
+  const characters = require(resolve(__dirname, '../../imdb.json'))
+  console.log('characters.length ' + characters.length)
+  // for (let i = 0; i < 2; i++) { use length with 2 test prevent blacklist
+  for (let i = 0; i < characters.length; i++) {
+    // 3判断这个对象如果没有profile,则添加
+    if (!characters[i].profile) {
+      // 4构建url的请求地址,也就是角色主页
+      const url = `https://www.imdb.com/title/tt0944947/characters/${characters[i].chId}`
+      console.log('crawling... ' + characters[i].name)
+      // 5 request the url and fetch data
+      const src = await fetchIMDbProfile(url)
+      console.log('crawled ' + src)
+      // 11 save the avatar of fetch the data
+      characters[i].profile = src
+
+      fs.writeFileSync('./imdbCharacters.json', JSON.stringify(characters, null, 2), 'utf8')
+      await sleep(500)
+    }
+  }
+}
+
+
+```
+## add check avatar function 
+
+```js
+// check the profile avatar
+const checkIMDbProfile = () => {
+  // NOTE: use imdb.json instead of wikitCharacters.json that is empty
+  const characters = require(resolve(__dirname, '../../imdbCharacters.json'))
+  const newCharacters = []
+  characters.forEach((item) => {
+    // if (!item.profile) {
+    //   console.log(item.name)
+    // }
+    if (item.profile) {
+      newCharacters.push(item)
+    }
+    // push characters with profile filed in new file
+  })
+  fs.writeFileSync('./validCharacters.json', JSON.stringify(newCharacters, null, 2), 'utf8')
+}
+checkIMDbProfile()
+```
+
+###  add fetch the photos of character function
+
+**copy code of above example function**
+
+```js
+
+
 
 
 ```
