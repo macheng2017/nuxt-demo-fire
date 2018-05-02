@@ -401,8 +401,84 @@ checkIMDbProfile()
 **copy code of above example function**
 
 ```js
+export const getIMDbImages = async () => {
+  // 2 遍历数据
+  const characters = require(resolve(__dirname, '../../validCharacters.json'))
+  console.log('characters.length ' + characters.length)
+  // use length with 2 test prevent blacklist
+  // for (let i = 0; i < 2; i++) {
+  for (let i = 0; i < characters.length; i++) {
+    // 3判断这个对象如果没有profile,则添加
+    if (!characters[i].images) {
+      // 4构建url的请求地址,也就是角色主页
+      const url = `https://www.imdb.com/title/tt0944947/characters/${characters[i].chId}`
+      console.log('crawling... ' + characters[i].name)
+      // 5 request the url and fetch data
+      const images = await fetchIMDbImages(url)
+      console.log('crawled ' + images.length)
+      // 11 save the avatar of fetch the data
+      characters[i].images = images
 
+      fs.writeFileSync('./fullCharacters.json', JSON.stringify(characters, null, 2), 'utf8')
+      await sleep(500)
+    }
+  }
+}
 
-
-
+const fetchIMDbImages = async (url) => {
+  // 5.structure options object
+  // 6.copy options object code of the example above
+  const options = {
+    uri: url,
+    // 使用cheerio进行解析
+    // 网速过慢可以开启代理
+    // agentClass: Agent,
+    // agentOptions: {
+    //   socksHost: 'localhost',
+    //   socksPort: 3118
+    // },
+    transform: body => cheerio.load(body)
+  }
+  // 7.Node that the following is identical in meaning to the example above
+  const $ = await rp(options)
+  let images = []
+  // 8.for example, will you get that element for <a></a> such as
+  $('a[class="titlecharacters-image-grid__thumbnail-link"] img').each(function () {
+    // 9.declare the src
+    let src = $(this).attr('src')
+    // 10.decide this src make sure that is not null && empty
+    if (src) {
+      //  split string up into several part  whit '_v1'
+      // The shift() method removes the first element from an array and returns that removed element.
+      // This method changes the length of the array
+      // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/shift
+      src = src.split('_V1').shift()
+      src += '_V1.jpg'
+      images.push(src)
+    }
+  })
+  return images
+}
+getIMDbImages()
 ```
+
+
+## fetch the data for article
+
+http://www.wikia.com/api/v1/
+
+
+http://zh.asoiaf.wikia.com/api/v1/Search/List?query=Tywin%20Lannister
+
+
+根据上面的url查询到的id 查询角色详细信息
+
+http://zh.asoiaf.wikia.com/api/v1/Articles/AsSimpleJson?id=244
+
+
+对上面的两份数据进行整合
+
+
+### add wiki.js
+
+

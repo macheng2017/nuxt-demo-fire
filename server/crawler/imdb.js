@@ -163,8 +163,8 @@ export const getIMDbImages = async () => {
   const characters = require(resolve(__dirname, '../../validCharacters.json'))
   console.log('characters.length ' + characters.length)
   // use length with 2 test prevent blacklist
-  for (let i = 0; i < 2; i++) {
-  // for (let i = 0; i < characters.length; i++) {
+  // for (let i = 0; i < 2; i++) {
+  for (let i = 0; i < characters.length; i++) {
     // 3判断这个对象如果没有profile,则添加
     if (!characters[i].images) {
       // 4构建url的请求地址,也就是角色主页
