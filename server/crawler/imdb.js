@@ -3,18 +3,18 @@ import rp from 'request-promise'
 import R from 'ramda'
 import fs from 'fs'
 import { resolve } from 'path'
-// import Agent from 'socks5-http-client/lib/Agent'
+import Agent from 'socks5-http-client/lib/Agent'
 
 export const getIMDBCharacters = async() => {
   const options = {
     uri: 'http://www.imdb.com/title/tt0944947/fullcredits?ref_=tt_cl_sm#cast',
     // 使用cheerio进行解析
     // 网速过慢可以开启代理
-    // agentClass: Agent,
-    // agentOptions: {
-    //   socksHost: 'localhost',
-    //   socksPort: 3118
-    // },
+    agentClass: Agent,
+    agentOptions: {
+      socksHost: 'localhost',
+      socksPort: 3118
+    },
     transform: body => cheerio.load(body)
   }
 
@@ -28,7 +28,8 @@ export const getIMDBCharacters = async() => {
     // 拿到url
     const nmId = nmIdDom.attr('href')
 
-    const characterDom = $(this).find('td.characters a')
+    const characterDom = $(this).find('td.character a[href!="#"]')
+    console.log(' -----characterDom-------- ' + characterDom)
     const name = characterDom.text()
     const chId = characterDom.attr('href')
     // console.log(' chId ' + chId)
@@ -67,6 +68,7 @@ export const getIMDBCharacters = async() => {
     if (match2) {
       photo.chId = match2[1]
     }
+
     // 4. 最终返回的还是photo
     return photo
   }),
@@ -82,6 +84,7 @@ export const getIMDBCharacters = async() => {
 }
 
 // getIMDBCharacters().catch(err => console.log(err))
+
 const fetchIMDbProfile = async (url) => {
   // 5.structure options object
   // 6.copy options object code of the example above
@@ -156,31 +159,8 @@ const checkIMDbProfile = () => {
   })
   fs.writeFileSync('./validCharacters.json', JSON.stringify(newCharacters, null, 2), 'utf8')
 }
-checkIMDbProfile()
-// getIMDbProfile()
-export const getIMDbImages = async () => {
-  // 2 遍历数据
-  const characters = require(resolve(__dirname, '../../validCharacters.json'))
-  console.log('characters.length ' + characters.length)
-  // use length with 2 test prevent blacklist
-  // for (let i = 0; i < 2; i++) {
-  for (let i = 0; i < characters.length; i++) {
-    // 3判断这个对象如果没有profile,则添加
-    if (!characters[i].images) {
-      // 4构建url的请求地址,也就是角色主页
-      const url = `https://www.imdb.com/title/tt0944947/characters/${characters[i].chId}`
-      console.log('crawling... ' + characters[i].name)
-      // 5 request the url and fetch data
-      const images = await fetchIMDbImages(url)
-      console.log('crawled ' + images.length)
-      // 11 save the avatar of fetch the data
-      characters[i].images = images
-
-      fs.writeFileSync('./fullCharacters.json', JSON.stringify(characters, null, 2), 'utf8')
-      await sleep(500)
-    }
-  }
-}
+// checkIMDbProfile()
+getIMDbProfile()
 
 const fetchIMDbImages = async (url) => {
   // 5.structure options object
@@ -216,4 +196,28 @@ const fetchIMDbImages = async (url) => {
   })
   return images
 }
-getIMDbImages()
+
+export const getIMDbImages = async () => {
+  // 2 遍历数据
+  const characters = require(resolve(__dirname, '../../validCharacters.json'))
+  console.log('characters.length ' + characters.length)
+  // use length with 2 test prevent blacklist
+  // for (let i = 0; i < 2; i++) {
+  for (let i = 0; i < characters.length; i++) {
+    // 3判断这个对象如果没有profile,则添加
+    if (!characters[i].images) {
+      // 4构建url的请求地址,也就是角色主页
+      const url = `https://www.imdb.com/title/tt0944947/characters/${characters[i].chId}`
+      console.log('crawling... ' + characters[i].name)
+      // 5 request the url and fetch data
+      const images = await fetchIMDbImages(url)
+      console.log('crawled ' + images.length)
+      // 11 save the avatar of fetch the data
+      characters[i].images = images
+
+      fs.writeFileSync('./fullCharacters.json', JSON.stringify(characters, null, 2), 'utf8')
+      await sleep(500)
+    }
+  }
+}
+// getIMDbImages()

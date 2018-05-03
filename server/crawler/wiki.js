@@ -2,13 +2,26 @@ import cheerio from 'cheerio'
 import rp from 'request-promise'
 import R from 'ramda'
 import fs from 'fs'
-import { resolve, normalize } from 'path'
-import { get } from 'http';
+import { resolve } from 'path'
+import _ from 'lodash'
 
 const sleep = time => new Promise(resolve => setTimeout(resolve, time))
+// 这个函数需要先弄懂_.reduce是什么意思
+// 然后  R.concat()
 const normalizedContent = content => _.reduce(content, (acc, item) => {
-  
-})
+  // 进行迭代,判断每条数据有没有这个text 如果有的话
+  if (item.text) {
+    // 将内容push进去
+    acc.push(item.text)
+  }
+  if (item.elements && item.elements.length) {
+    // 如果里面还有数组的对象嵌套,还要将其数据拿出来
+    let _acc = normalizedContent(item.elements)
+    acc = R.concat(acc, _acc)
+  }
+  return acc
+}, [])
+
 const normalizedSections = R.compose(
   R.nth(1),
   R.splitAt(1),
@@ -92,6 +105,9 @@ export const getWikiCharacters = async () => {
   // 引入做过清理的imdb的数据
 
   let data = require(resolve(__dirname, '../../fullCharacters.json'))
+// 测试不要一次测试所有数据,预防ip被封
+  data = [data[0], data[1]]
+
   console.log(data.length)
 
   data = R.map(getWikiId, data)
@@ -110,3 +126,5 @@ export const getWikiCharacters = async () => {
 }
 
 getWikiCharacters()
+// p57bh6q88.bkt.clouddn.com 测试域名
+// minipro.spzwl.com

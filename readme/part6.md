@@ -486,3 +486,20 @@ http://zh.asoiaf.wikia.com/api/v1/Articles/AsSimpleJson?id=244
 
 
 http://www.cnblogs.com/lvdabao/p/es6-promise-1.html
+
+http://www.css88.com/doc/lodash/#_reducecollection-iteratee_identity-accumulator
+
+### 测试
+修改位置 /start.js
+require('./server/crawler/wiki')
+
+```js
+// 测试不要一次测试所有数据,预防ip被封
+  data = [data[0], data[1]]
+```
+
+
+// p57bh6q88.bkt.clouddn.com 测试域名
+// minipro.spzwl.com
+
+
