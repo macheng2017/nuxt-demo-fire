@@ -482,3 +482,7 @@ http://zh.asoiaf.wikia.com/api/v1/Articles/AsSimpleJson?id=244
 ### add wiki.js
 
 
+
+
+
+http://www.cnblogs.com/lvdabao/p/es6-promise-1.html

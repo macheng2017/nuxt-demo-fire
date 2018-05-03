@@ -2,10 +2,22 @@ import cheerio from 'cheerio'
 import rp from 'request-promise'
 import R from 'ramda'
 import fs from 'fs'
-import { resolve } from 'path'
+import { resolve, normalize } from 'path'
+import { get } from 'http';
 
 const sleep = time => new Promise(resolve => setTimeout(resolve, time))
-
+const normalizedContent = content => _.reduce(content, (acc, item) => {
+  
+})
+const normalizedSections = R.compose(
+  R.nth(1),
+  R.splitAt(1),
+  R.map( i => ({
+    level: i.level,
+    title: i.title,
+    content: normalizedContent(i.content)
+  }))
+)
 const getWikiId = async data => {
   const query = data.name || data.cname
   const url = `http://zh.asoiaf.wikia.com/api/v1/Search/List?query=${encodeURI(query)}`
@@ -65,4 +77,36 @@ const getWikiDetail = async data => {
 
   const cnameIntro = getCNameAndIntro(res)
   let sections = getLevel(res)
+  // 初始的body
+  let body = R.merge(data, getCNameAndIntro(res))
+  // 重新设置sections 对数据进行深层的遍历
+  sections = normalizedSections(sections)
+
+  body.sections = sections
+  body.wikiId = id
+// 返回打平的数据
+  return R.pick(['name', 'cname', 'playedBy', 'profile', 'images', 'nmId', 'chId', 'sections', 'intro', 'wikiId', 'words'], body)
 }
+
+export const getWikiCharacters = async () => {
+  // 引入做过清理的imdb的数据
+
+  let data = require(resolve(__dirname, '../../fullCharacters.json'))
+  console.log(data.length)
+
+  data = R.map(getWikiId, data)
+  // 通过R.map构建了很多个异步的请求,等所有的请求都执行完毕之后就拿到了所有人的id
+  // Promise.all 的执行方式是传入一个函数数组,里面的值最终都返回promise对象,
+  // 在传入的promise中按照执行最慢的回调函数返回统一结果,返回结果是一个数组
+  console.log('获取wiki id' + data[0])
+
+  data = await Promise.all(data)
+
+  data = R.map(getWikiDetail, data)
+  console.log('获取wiki 详细资料' + data[0])
+  data = await Promise.all(data)
+  // 最后将文件写入本地
+  fs.writeFileSync('./finalCharacters.js', JSON.stringify(data, null, 2), 'utf8')
+}
+
+getWikiCharacters()
