@@ -106,7 +106,7 @@ export const getWikiCharacters = async () => {
 
   let data = require(resolve(__dirname, '../../fullCharacters.json'))
 // 测试不要一次测试所有数据,预防ip被封
-  data = [data[0], data[1]]
+  // data = [data[0], data[1]]
 
   console.log(data.length)
 
