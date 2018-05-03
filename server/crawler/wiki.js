@@ -3,7 +3,7 @@ import R from 'ramda'
 import fs from 'fs'
 import { resolve } from 'path'
 import _ from 'lodash'
-import { fetchImage } from '../libs/qiniu'
+// import { fetchImage } from '../libs/qiniu'
 
 const sleep = time => new Promise(resolve => setTimeout(resolve, time))
 // 这个函数需要先弄懂_.reduce是什么意思

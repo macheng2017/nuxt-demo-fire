@@ -34,7 +34,7 @@ export const getAPICharacters = async(page = 1) => {
     // 将数据写到本地,设置为追加模式
     fs.writeFileSync('./characters.json', JSON.stringify(characters, null, 2), 'utf8')
     // 间歇时间
-    await sleep(1000)
+    await sleep(200)
     page++
     getAPICharacters(page).catch(err => console.log(err))
   }

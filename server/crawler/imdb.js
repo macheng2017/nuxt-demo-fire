@@ -122,7 +122,7 @@ const sleep = time => new Promise(resolve => setTimeout(resolve, time))
 
 export const getIMDbProfile = async () => {
   // 2 遍历数据
-  const characters = require(resolve(__dirname, '../../imdb.json'))
+  const characters = require(resolve(__dirname, '../../wikiCharacters.json'))
   console.log('characters.length ' + characters.length)
   // for (let i = 0; i < 2; i++) { use length with 2 test prevent blacklist
   for (let i = 0; i < characters.length; i++) {
@@ -138,7 +138,7 @@ export const getIMDbProfile = async () => {
       characters[i].profile = src
 
       fs.writeFileSync('./imdbCharacters.json', JSON.stringify(characters, null, 2), 'utf8')
-      await sleep(500)
+      await sleep(100)
     }
   }
 }
@@ -159,8 +159,8 @@ const checkIMDbProfile = () => {
   })
   fs.writeFileSync('./validCharacters.json', JSON.stringify(newCharacters, null, 2), 'utf8')
 }
+// getIMDbProfile()
 // checkIMDbProfile()
-getIMDbProfile()
 
 const fetchIMDbImages = async (url) => {
   // 5.structure options object
@@ -216,8 +216,8 @@ export const getIMDbImages = async () => {
       characters[i].images = images
 
       fs.writeFileSync('./fullCharacters.json', JSON.stringify(characters, null, 2), 'utf8')
-      await sleep(500)
+      await sleep(10)
     }
   }
 }
-// getIMDbImages()
+getIMDbImages()
