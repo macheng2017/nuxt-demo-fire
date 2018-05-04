@@ -135,7 +135,7 @@ export const getWikiCharacters = async () => {
 export const fetchImageFromIMDb = async () => {
   let IMDbCharacters = require(resolve(__dirname, '../../finalCharacters.json'))
   // 测试 先使用一个对象测试下代码
-  IMDbCharacters = [IMDbCharacters[0]]
+  // IMDbCharacters = [IMDbCharacters[0]]
   // 遍历
   IMDbCharacters = R.map(
     async item => {
@@ -150,8 +150,8 @@ export const fetchImageFromIMDb = async () => {
         item.profile = key
         // upload stage photo on the qiniu server
         // 长度改为2 比较快的加载到图片
-        for (let i = 0; i < 2; i++) {
-        // for (let i = 0; i < item.images.length; i++) {
+        // for (let i = 0; i < 2; i++) {
+        for (let i = 0; i < item.images.length; i++) {
           let _key = `${item.nmId}/${randomToken(32)}`
           await fetchImage(item.images[i], _key)
           console.log(item.images[i])

@@ -24,7 +24,7 @@ export const fetchImage = async(url, key) => {
     //   else resolve(ret)
     // })
   // 使用七牛的shell 脚本
-    const bash = `qshell fetch ${url} ${bucket} '${key}'`
+    const bash = `qshell fetch ${url} ${bucket} ${key}`
     // execute shell
     const child = exec(bash, {async: true})
 
