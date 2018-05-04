@@ -886,3 +886,59 @@ getHouses()
 
 
 用爬取的成员 去匹配 伊耿历三世纪末的成员
+
+```js
+export const getSwornMembers = () => {
+  let houses = require(resolve(__dirname, '../../wikiHouses.json'))
+  let characters = require(resolve(__dirname, '../../complateCharacters.json'))
+  // 通过map可以拿到一份数据经过分析改造后的数据
+  const findSwornMembers = R.map(
+    R.compose(
+      // 将所有的数据都拼接到一个数组中
+      i => _.reduce(i, (acc, item) => {
+        acc = acc.concat(item)
+        return acc
+      }, []),
+      // 将过滤之后的数据粘合起来
+      R.map(i => {
+        let item = R.find(R.propEq('cname', i[0]))(characters)
+        return {
+          character: item.nmId,
+          text: i[1]
+        }
+      }),
+      // 7比对是否是列表中的数据,看一下人物名称是否在列表中
+      R.filter(item => R.find(R.propEq('cname', item[0]))(characters)),
+      R.map(i => {
+        let item = i.split('，')
+        let name = item.shift()
+        return [name.replace(/(【|】|爵士|一世女王|三世国王|公爵|国王|王后|夫人|公主|王子)/g, ''), item.join(',')]
+      }),
+      // 6 第一句是废话不要
+      R.nth(1),
+      // 5在指定索引为1截断成两个数组
+      R.splitAt(1),
+      // 4取出content
+      R.prop('content'),
+      // 3取出数组中第一条数据
+      R.nth(0),
+      // 2过滤出title含有关键字的,返回一个数组
+      R.filter(i => R.test(/伊耿历三世纪末的/, i.title)),
+      // 1取出sections
+      R.prop('sections')
+    )
+  )
+
+  let swornMembers = findSwornMembers(houses)
+
+  houses = _.map(houses, (item, index) => {
+    item.swornMembers = swornMembers[index]
+
+    return item
+  })
+  fs.writeFileSync('./completeHouses.json', JSON.stringify(houses, null, 2), 'utf8')
+}
+
+getSwornMembers()
+
+```
