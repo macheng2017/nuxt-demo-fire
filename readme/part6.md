@@ -690,6 +690,61 @@ export const fetchImage = async(url, key) => {
 修改 wiki.js
 
 ```js
+import { fetchImage } from '../libs/qiniu'
+import randomToken from 'random-token'
 
+
+export const fetchImageFromIMDb = async () => {
+  let IMDbCharacters = require(resolve(__dirname, '../../finalCharacters.json'))
+
+  // 遍历
+  IMDbCharacters = R.map(
+    async item => {
+      try {
+        let key = `${item.name}/${randomToken(32)}`
+        // fetch avatar
+        await fetchImage(item.profile, key)
+        // replace url of qiniu server with in item.profile
+        item.profile = key
+        // upload stage photo on the qiniu server
+        for (let i = 0; i < item.images.length; i++) {
+          let _key = `${item.name}/${randomToken(32)}`
+          await fetchImage(item.images[i], _key)
+          // waiting for 100 ms
+          await (100)
+          // replace url of qiniu server created with in item.images
+          item.images[i] = _key
+        }
+      } catch (e) {
+        console.log(e)
+      }
+    }
+  )(IMDbCharacters)
+
+  IMDbCharacters = await Promise.all(IMDbCharacters)
+
+  // write the file into the local hardDisk
+
+  fs.writeFileSync('./complateCharacters.js', JSON.stringify(IMDbCharacters, null, 2), 'utf8')
+}
 
 ```
+
+
+
+https://developer.qiniu.com/kodo/sdk/1289/nodejs#5
+https://developer.qiniu.com/kodo/sdk/1289/nodejs#rs-fetch
+
+## 使用qshell方式 抓取url的图片
+### 安装shell
+https://developer.qiniu.com/kodo/tools/1302/qshell
+
+// 需要把shell安装到全局
+// npm i qshell -g
+### 配置shell
+
+qshell account rvMb2GJrTE5b74_F1TZyNrAbcTG1XQnAaLJZXyJ- j9fh9KCdCMW9_e5q032VnQgbt2RcWAx5kZV5AZFz
+
+
+
+minipro.spzwl.com/nm0227759/34kilrrsw6t8yue9wzpmb4u4rqzjubj7

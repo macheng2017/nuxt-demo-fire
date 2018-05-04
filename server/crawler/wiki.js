@@ -3,7 +3,8 @@ import R from 'ramda'
 import fs from 'fs'
 import { resolve } from 'path'
 import _ from 'lodash'
-// import { fetchImage } from '../libs/qiniu'
+import { fetchImage } from '../libs/qiniu'
+import randomToken from 'random-token'
 
 const sleep = time => new Promise(resolve => setTimeout(resolve, time))
 // 这个函数需要先弄懂_.reduce是什么意思
@@ -122,9 +123,56 @@ export const getWikiCharacters = async () => {
   console.log('获取wiki 详细资料' + data[0])
   data = await Promise.all(data)
   // 最后将文件写入本地
-  fs.writeFileSync('./finalCharacters.js', JSON.stringify(data, null, 2), 'utf8')
+  fs.writeFileSync('./finalCharacters.json', JSON.stringify(data, null, 2), 'utf8')
 }
 
-getWikiCharacters()
+// getWikiCharacters()
 // p57bh6q88.bkt.clouddn.com 测试域名
 // minipro.spzwl.com
+
+//
+
+export const fetchImageFromIMDb = async () => {
+  let IMDbCharacters = require(resolve(__dirname, '../../finalCharacters.json'))
+  // 测试 先使用一个对象测试下代码
+  IMDbCharacters = [IMDbCharacters[0]]
+  // 遍历
+  IMDbCharacters = R.map(
+    async item => {
+      try {
+        let key = `${item.nmId}/${randomToken(32)}`
+        // fetch avatar
+        await fetchImage(item.profile, key)
+        console.log(item.profile)
+        console.log(key)
+        console.log('upload done!')
+        // replace url of qiniu server with in item.profile
+        item.profile = key
+        // upload stage photo on the qiniu server
+        // 长度改为2 比较快的加载到图片
+        for (let i = 0; i < 2; i++) {
+        // for (let i = 0; i < item.images.length; i++) {
+          let _key = `${item.nmId}/${randomToken(32)}`
+          await fetchImage(item.images[i], _key)
+          console.log(item.images[i])
+          console.log(_key)
+          // waiting for 100 ms
+          await (100)
+          // replace url of qiniu server created with in item.images
+          item.images[i] = _key
+        }
+      } catch (e) {
+        console.log(e)
+      }
+      return item
+    }
+  )(IMDbCharacters)
+
+  IMDbCharacters = await Promise.all(IMDbCharacters)
+
+  // write the file into the local hardDisk
+
+  fs.writeFileSync('./complateCharacters.json', JSON.stringify(IMDbCharacters, null, 2), 'utf8')
+}
+
+fetchImageFromIMDb()
