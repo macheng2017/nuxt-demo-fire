@@ -696,20 +696,28 @@ import randomToken from 'random-token'
 
 export const fetchImageFromIMDb = async () => {
   let IMDbCharacters = require(resolve(__dirname, '../../finalCharacters.json'))
-
+  // 测试 先使用一个对象测试下代码
+  // IMDbCharacters = [IMDbCharacters[0]]
   // 遍历
   IMDbCharacters = R.map(
     async item => {
       try {
-        let key = `${item.name}/${randomToken(32)}`
+        let key = `${item.nmId}/${randomToken(32)}`
         // fetch avatar
         await fetchImage(item.profile, key)
+        console.log(item.profile)
+        console.log(key)
+        console.log('upload done!')
         // replace url of qiniu server with in item.profile
         item.profile = key
         // upload stage photo on the qiniu server
+        // 长度改为2 比较快的加载到图片
+        // for (let i = 0; i < 2; i++) {
         for (let i = 0; i < item.images.length; i++) {
-          let _key = `${item.name}/${randomToken(32)}`
+          let _key = `${item.nmId}/${randomToken(32)}`
           await fetchImage(item.images[i], _key)
+          console.log(item.images[i])
+          console.log(_key)
           // waiting for 100 ms
           await (100)
           // replace url of qiniu server created with in item.images
@@ -718,6 +726,7 @@ export const fetchImageFromIMDb = async () => {
       } catch (e) {
         console.log(e)
       }
+      return item
     }
   )(IMDbCharacters)
 
@@ -725,13 +734,16 @@ export const fetchImageFromIMDb = async () => {
 
   // write the file into the local hardDisk
 
-  fs.writeFileSync('./complateCharacters.js', JSON.stringify(IMDbCharacters, null, 2), 'utf8')
+  fs.writeFileSync('./complateCharacters.json', JSON.stringify(IMDbCharacters, null, 2), 'utf8')
 }
+
+fetchImageFromIMDb()
+
 
 ```
 
 
-
+## 使用sdk抓取url
 https://developer.qiniu.com/kodo/sdk/1289/nodejs#5
 https://developer.qiniu.com/kodo/sdk/1289/nodejs#rs-fetch
 
@@ -746,5 +758,59 @@ https://developer.qiniu.com/kodo/tools/1302/qshell
 qshell account rvMb2GJrTE5b74_F1TZyNrAbcTG1XQnAaLJZXyJ- j9fh9KCdCMW9_e5q032VnQgbt2RcWAx5kZV5AZFz
 
 
+```js
+// import qiniu from 'qiniu'
+// import config from '../config'
+import { exec } from 'shelljs'
+
+// qiniu.config.ACCESS_KEY = config.qiniu.AK
+// qiniu.config.SECRET_KEY = config.qiniu.SK
+// 存储空间名称
+const bucket = ' miniprogram'
+// https://developer.qiniu.com/kodo/sdk/1289/nodejs#5
+// 资源管理相关的操作首先要构建BucketManager对象：
+// var mac = new qiniu.auth.digest.Mac(accessKey, secretKey)
+// var config = new qiniu.conf.Config()
+// // config.useHttpsDomain = true
+// // 华东地区的空间qiniu.zone.Zone_z0
+// config.zone = qiniu.zone.Zone_z0
+// var bucketManager = new qiniu.rs.BucketManager(mac, config)
+
+export const fetchImage = async(url, key) => {
+  // const client = new qiniu.rs.Client()
+  // promise 封装下
+  return new Promise((resolve, reject) => {
+    // client.fetch(url, bucket, key, (err, ret) => {
+    //   if (err) reject(err)
+    //   else resolve(ret)
+    // })
+  // 使用七牛的shell 脚本
+    const bash = `qshell fetch ${url} ${bucket} ${key}`
+    // execute shell
+    const child = exec(bash, {async: true})
+
+    child.stdout.on('data', data => {
+      console.log(data)
+      resolve(data)
+    })
+  })
+}
+// 需要把shell安装到全局
+// npm i qshell -g
+```
 
 minipro.spzwl.com/nm0227759/34kilrrsw6t8yue9wzpmb4u4rqzjubj7
+
+
+## 由于家族数量太多,将主要家族放上即可
+
+
+在爬家族数据之前,先罗列出需要爬取那些家族信息
+
+```js
+
+
+
+
+
+```

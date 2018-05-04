@@ -1,5 +1,5 @@
-import qiniu from 'qiniu'
-import config from '../config'
+// import qiniu from 'qiniu'
+// import config from '../config'
 import { exec } from 'shelljs'
 
 // qiniu.config.ACCESS_KEY = config.qiniu.AK
