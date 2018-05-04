@@ -220,4 +220,4 @@ export const getIMDbImages = async () => {
     }
   }
 }
-getIMDbImages()
+// getIMDbImages()

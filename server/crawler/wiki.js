@@ -33,7 +33,7 @@ const normalizedSections = R.compose(
   }))
 )
 const getWikiId = async data => {
-  const query = data.name || data.cname
+  const query = data.cname || data.name
   const url = `http://zh.asoiaf.wikia.com/api/v1/Search/List?query=${encodeURI(query)}`
   // request maybe break
   let res
@@ -175,4 +175,67 @@ export const fetchImageFromIMDb = async () => {
   fs.writeFileSync('./complateCharacters.json', JSON.stringify(IMDbCharacters, null, 2), 'utf8')
 }
 
-fetchImageFromIMDb()
+// fetchImageFromIMDb()
+const HOUSES = [
+  {
+    name: 'House Stark of Winterfell',
+    cname: '史塔克家族',
+    words: 'Winter is Coming'
+  },
+  {
+    name: 'House Targaryen',
+    cname: '坦格利安家族',
+    words: 'Fire and Blood'
+  },
+  {
+    name: 'House Lannister of Casterly Rock',
+    cname: '兰尼斯特家族',
+    words: 'Hear Me Roar!'
+  },
+  {
+    name: 'House Arryn of the Eyrie',
+    cname: '艾林家族',
+    words: 'As High as Honor'
+  },
+  {
+    name: 'House Tully of the Riverrun',
+    cname: '徒利家族',
+    words: 'Family, Duty, Honor'
+  },
+  {
+    name: 'House Greyjoy of Pyke',
+    cname: '葛雷乔伊家族',
+    words: 'We Do Not Sow'
+  },
+  {
+    name: "House Baratheon of Storm's End",
+    cname: '风息堡的拜拉席恩家族',
+    words: 'Ours is the Fury'
+  },
+  {
+    name: 'House Tyrell of Highgarden',
+    cname: '提利尔家族',
+    words: 'Growing Strong'
+  },
+  {
+    name: 'House Nymeros Martell of Sunspear',
+    cname: '马泰尔家族',
+    words: 'Unbowed, Unbent, Unbroken'
+  }
+]
+
+//
+
+export const getHouses = async () => {
+    // 获取wikiId 返回一个数组 全是promise请求
+  let data = R.map(getWikiId, HOUSES)
+
+  // 把所有异步动作全部跑一遍,并且依据最慢的一个返回一个数组
+  data = await Promise.all(data)
+  // 获取详细的信息
+  data = R.map(getWikiDetail, data)
+  data = await Promise.all(data)
+  fs.writeFileSync('./wikiHouses.json', JSON.stringify(data, null, 2), 'utf8')
+}
+
+getHouses()

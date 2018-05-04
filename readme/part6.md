@@ -806,11 +806,83 @@ minipro.spzwl.com/nm0227759/34kilrrsw6t8yue9wzpmb4u4rqzjubj7
 
 
 在爬家族数据之前,先罗列出需要爬取那些家族信息
+位置 crawler/wiki.js
+
+```js
+
+const HOUSES = [
+  {
+    name: 'House Stark of Winterfell',
+    cname: '史塔克家族',
+    words: 'Winter is Coming'
+  },
+  {
+    name: 'House Targaryen',
+    cname: '坦格利安家族',
+    words: 'Fire and Blood'
+  },
+  {
+    name: 'House Lannister of Casterly Rock',
+    cname: '兰尼斯特家族',
+    words: 'Hear Me Roar!'
+  },
+  {
+    name: 'House Arryn of the Eyrie',
+    cname: '艾林家族',
+    words: 'As High as Honor'
+  },
+  {
+    name: 'House Tully of the Riverrun',
+    cname: '徒利家族',
+    words: 'Family, Duty, Honor'
+  },
+  {
+    name: 'House Greyjoy of Pyke',
+    cname: '葛雷乔伊家族',
+    words: 'We Do Not Sow'
+  },
+  {
+    name: "House Baratheon of Storm's End",
+    cname: '风息堡的拜拉席恩家族',
+    words: 'Ours is the Fury'
+  },
+  {
+    name: 'House Tyrell of Highgarden',
+    cname: '提利尔家族',
+    words: 'Growing Strong'
+  },
+  {
+    name: 'House Nymeros Martell of Sunspear',
+    cname: '马泰尔家族',
+    words: 'Unbowed, Unbent, Unbroken'
+  }
+]
+
+
+```
+
+获取家族数据和获取个人数据的方法是一样的,拿到wikiId 根据wikiId,拿到详细信息,然后打平整理出来就是家族数据了
+
 
 ```js
 
 
+export const getHouses = async () => {
+    // 获取wikiId 返回一个数组 全是promise请求
+  let data = R.map(getWikiId, HOUSES)
 
+  // 把所有异步动作全部跑一遍,并且依据最慢的一个返回一个数组
+  data = await Promise.all(data)
+  // 获取详细的信息
+  data = R.map(getWikiDetail, data)
+  data = await Promise.all(data)
+  fs.writeFileSync('./wikiHouses.json', JSON.stringify(data, null, 2), 'utf8')
+}
 
+getHouses()
 
 ```
+## 关联家族数据与主要人物数据
+
+
+用爬取的成员 去匹配 伊耿历三世纪末的成员
