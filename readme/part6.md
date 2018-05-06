@@ -942,3 +942,144 @@ export const getSwornMembers = () => {
 getSwornMembers()
 
 ```
+
+
+## 数据入库
+
+
+path : server/database/schema/wikiHouse.js
+
+copy ./token.js code to wikiHouse.js
+
+```js
+const mongoose = require('mongoose')
+const Schema = mongoose.Schema
+const Mixed = Schema.Types.Mixed
+
+const WikiHouseSchema = new Schema({
+  name: String,
+  cname: String,
+  works: String,
+  intro: String,
+  cover: String,
+  wikiId: Number,
+  sections: Mixed, // 混合类型
+  swornMembers: [ // 主要成员, 与爬取的数据保持一致
+    {
+      characters: {
+        type: String,
+        ref: 'WikiCharacter' // 指向到另外一张schema
+      },
+      text: String
+    }
+  ],
+  meta: {
+    createdAt: {
+      type: Date,
+      default: Date.now()
+    },
+    updatedAt: {
+      type: Date,
+      default: Date.now()
+    }
+  }
+})
+
+WikiHouseSchema.pre('save', function (next) {
+  if (this.isNew) {
+    this.meta.createdAt = this.meta.updatedAt = Date.now()
+  } else {
+    this.meta.updatedAt = Date.now()
+  }
+  next()
+})
+const WikiHouse = mongoose.model('WikiHouse', WikiHouseSchema)
+
+```
+add  server/database/schema/wikiCharacter.js
+```js
+const mongoose = require('mongoose')
+const Schema = mongoose.Schema
+const Mixed = Schema.Types.Mixed
+
+const WikiCharacterSchema = new Schema({
+  _id: String, // 通过这个id进行关联 外键
+  wikiId: Number,
+  nmId: String,
+  chId: String,
+  name: String,
+  cname: String,
+  playedBy: String,
+  profile: String,
+  images: [
+    String
+  ],
+  sections: Mixed, // 混合类型
+  intro: [
+    String
+  ],
+  meta: {
+    createdAt: {
+      type: Date,
+      default: Date.now()
+    },
+    updatedAt: {
+      type: Date,
+      default: Date.now()
+    }
+  }
+})
+
+WikiCharacterSchema.pre('save', function (next) {
+  if (this.isNew) {
+    this.meta.createdAt = this.meta.updatedAt = Date.now()
+  } else {
+    this.meta.updatedAt = Date.now()
+  }
+  next()
+})
+const WikiCharacter = mongoose.model('WikiCharacter', WikiCharacterSchema)
+
+```
+
+
+### 进行入库操作
+
+server/middlewares/database.js
+
+```js
+import R from 'ramda'
+// 先引入需要导入数据库的json文件
+let wikiHouses = require(resolve(__dirname, '../../completeHouses.json'))
+let wikiCharacters = require(resolve(__dirname, '../../complateCharacters.json'))
+// 3. 调整字段
+const formatData = R.map(
+  i => {
+    i._id = i.nmId
+    return i
+  }
+)
+wikiCharacters = formatData(wikiCharacters)
+
+mongoose.connection.on('open', async () => {
+  console.log('Connected to MongoDB', config.db)
+  // 在连接数据库的时候将数据导入进行去
+  // 拿到模型
+  const WikiHouses = mongoose.model('WikiHouse')
+  const WikiCharacter = mongoose.model('WikiCharacter')
+
+  const existWikiHouses = await WikiHouses.find({}).exec()
+  const existWikiCharacter = await WikiCharacter.find({}).exec()
+
+  if (!existWikiHouses.length) WikiHouses.insertMany(wikiHouses)
+  if (!existWikiCharacter.length) WikiCharacter.insertMany(wikiCharacters)
+  // 1.wikiCharacters schema 需要先处理下 由于其实用了自定义 _id 也就是 nmId
+  // 这样就可以通过wikiHouse中的ref: 查到 里面的人物数据
+  // 2. 需要在插入之前通过formatdata 整理
+
+})
+
+```
+### 修改 start.js
+
+require('./server')
