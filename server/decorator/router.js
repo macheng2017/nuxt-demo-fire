@@ -38,7 +38,7 @@ export default class Route {
       // 对里面的每个方法施加到他们自身,让其可以生效
       this.router[conf.method](routerPath, ...controllers)
     }
-    this.app.use(this.router.routes)
+    this.app.use(this.router.routes())
     this.app.use(this.router.allowedMethods())
   }
 }

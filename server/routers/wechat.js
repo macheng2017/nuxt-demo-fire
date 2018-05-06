@@ -9,13 +9,13 @@ import { signature, redirect, oauth } from '../controllers/wechat'
 // 比如可以用@controller('/wechat')
 @controller('')
 export class WechatCotroller {
-  @get('wechat-hear')
+  @get('/wechat-hear')
   async wechatHear(ctx, next) {
     const middle = wechatMiddle(config.wechat, reply)
     const body = await middle (ctx, next)
     ctx.body = body
   }
-  @post('wechat-hear')
+  @post('/wechat-hear')
   async wechatPostHear(ctx, next) {
     const middle = wechatMiddle(config.wechat, reply)
     const body = await middle (ctx, next)
