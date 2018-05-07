@@ -8,7 +8,7 @@ const createStore = () => {
     state: {
       imageCDN: 'http://minipro.spzwl.com/',
       houses: [],
-      cities: [],
+      // cities: [],
       characters: [],
       products: [],
       currentProduct: [],

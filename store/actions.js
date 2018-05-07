@@ -13,11 +13,11 @@ export default {
     state.houses = res.data.data
     return res
   },
-  async fetchCities({ state }) {
-    const res = await Services.fetchCities()
-    state.cities = res.data.data
-    return res
-  },
+  // async fetchCities({ state }) {
+  //   const res = await Services.fetchCities()
+  //   state.cities = res.data.data
+  //   return res
+  // },
   async fetchCharacters({ state }) {
     const res = await Services.fetchCharacters()
     // console.log(' data = ' + JSON.stringify(res.data.data))
