@@ -1,9 +1,9 @@
 <template lang="pug">
 .container
   .character-header
-    img.background(v-if='character.images', :src='character.images[character.images.length - 1]')
+    img.background(v-if='character.images', :src='imageCDN + character.images[character.images.length - 1]')
     .media
-      img(v-if='character.profile', :src='character.profile')
+      img(v-if='character.profile', :src='imageCDN + character.profile + "?imageView2/1/w/280/h/400/q/75|imageslim"')
       .desc
         .names
           p.cname {{character.cname}}
@@ -12,7 +12,7 @@
     .intro
       p(v-for = 'item in character.intro') {{item}}
     .stills
-      img(v-for='(item, index) in character.images' :src='item' :key='index')
+      img(v-for='(item, index) in character.images' :src='imageCDN + item + "?imageView2/1/w/750/h/460/q/75|imageslim"' :key='index')
     .items(v-for = 'item in character.sections')
       .title {{item.title}}
       .body(v-for='text in item.content') {{text}}
@@ -28,7 +28,8 @@
     },
     computed: {
       ...mapState({
-        character: 'currentCharacter'
+        character: 'currentCharacter',
+        imageCDN: 'imageCDN'
       })
     },
     beforeCreate() {

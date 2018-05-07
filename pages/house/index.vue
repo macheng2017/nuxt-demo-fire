@@ -11,7 +11,7 @@
     .title 主要角色
     .body(v-for='(item, index) in house.swornMembers' :key='index')
       .members(v-if='item.character')
-        img(:src='imageCDN + item.character.profile + "?imageView2/1/w/280/h/400/q/75|imageslim"')
+        img(:src='imageCDN + item.character.profile + "?imageView2/1/w/280/h/400/q/75|imageslim"' @click='showCharacter(item)')
         .desc
           .cname {{item.character.cname}}
           .intro {{item.text}}
@@ -39,6 +39,16 @@
       let id = this.$route.query.id
 
       this.$store.dispatch('showHouse', id)
+    },
+    methods: {
+      showCharacter(item) {
+        this.$router.push({
+          path: '/character',
+          query: {
+            id: item._id
+          }
+        })
+      }
     }
   }
 </script>
