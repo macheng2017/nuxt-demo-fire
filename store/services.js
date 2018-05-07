@@ -30,7 +30,7 @@ class Services {
   // 获取角色数据
   fetchCharacter(id) {
    // console.log(`${baseUrl}/wiki/character/${id}`)
-    return axios.get(`${baseUrl}/wiki/character/${id}`)
+    return axios.get(`${baseUrl}/wiki/characters/${id}`)
     // 测试用假数据
     // return {data: {data: [], success: true}}
   }

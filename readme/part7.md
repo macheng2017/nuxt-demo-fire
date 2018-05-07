@@ -489,3 +489,193 @@ cities: [
 ```js
 
 ```
+## 重构代码
+
+### 位置: server/index.js
+
+```js
+// import {
+//   getSignatureAsync,
+//   getAuthorizeURL,
+//   getUserByCode
+// } from './wechat'
+
+// export {
+//   getSignatureAsync,
+//   getAuthorizeURL,
+//   getUserByCode
+// }
+
+// 这样就可以在其他文件中通过 import * as api from '../api'
+// 直接通过api来调用所暴露出来的方法了
+import * as wechat from './wechat'
+
+export default {
+  wechat: wechat
+}
+
+```
+### 位置  controllers/wechat.js
+
+```js
+const params = await api.wechat.getSignatureAsync(url)
+
+const url = await api.wechat.getAuthorizeURL(scope, target, params)
+
+const user = await api.wechat.getUserByCode(code)
+
+```
+### copy code from  path routers/wiki.js
+
+```js
+import mongoose from 'mongoose'
+// 通过@ decorator 然后传入一个路径,
+// 这个路径可以看做一个命名空间,请求地址匹配到这个路径,都应该在这个页面中进行控制的
+// 比如可以用@controller('/wechat')
+
+const WikiHouse = mongoose.model('WikiHouse')
+const WikiCharacter = mongoose.model('WikiCharacter')
+  // 获取家族数据
+export async function getHouses() {
+  // 直接可以进行数据库的操作
+  const data = await WikiHouse
+  .find({})
+  .populate({
+    path: 'swornMembers.character',
+    select: '_id name cname profile'
+  }).exec()
+  return data
+}
+
+// 获取单个家族详细数据
+export async function getHouse(_id) {
+  const data = await WikiHouse
+  .findOne({_id: _id})
+  .populate({
+    path: 'swornMembers.character',
+    select: '_id name cname nmid'
+  }).exec()
+  return data
+}
+// 获取人物数据
+export async function getCharacters(limit = 20) {
+  const data = await WikiCharacter
+  .find({})
+  .limit(Number(limit))
+  .exec()
+  return data
+}
+// 获取单个人物详细数据
+export async function getCharacter(_id) {
+  const data = await WikiCharacter
+  .findOne({_id: _id})
+  .exec()
+  return data
+}
+
+```
+### index.js import wiki.js
+
+```js
+import * as wechat from './wechat'
+import * as wiki from './wiki'
+
+export default {
+  wechat: wechat,
+  wiki: wiki
+}
+
+
+```
+### path /routers/wiki.js 
+```js
+import { controller, get, post } from '../decorator/router'
+import api from '../api'
+// 通过@ decorator 然后传入一个路径,
+// 这个路径可以看做一个命名空间,请求地址匹配到这个路径,都应该在这个页面中进行控制的
+// 比如可以用@controller('/wechat')
+
+@controller('/wiki')
+export class WechatCotroller {
+  // 获取家族数据
+  @get('/houses')
+  async getHouses(ctx, next) {
+    const data = await api.wiki.getHouses()
+    ctx.body = {
+      data: data,
+      success: true
+    }
+  }
+  // 获取单个家族详细数据
+  @get('/houses/:_id')
+  async getHouse(ctx, next) {
+    const { params } = ctx
+    const { _id } = params
+    if (!_id) return (ctx.body = {success: false, err: 'id is required'})
+    const data = await api.wiki.getHouse(_id)
+    ctx.body = {
+      data: data,
+      success: true
+    }
+  }
+  // 获取人物数据
+  @get('/characters')
+  async getCharacters(ctx, next) {
+    let { limit = 20 } = ctx.query
+    const data = await api.wiki.getCharacters(limit)
+    ctx.body = {
+      data: data,
+      success: true
+    }
+  }
+  // 获取单个人物详细数据
+  @get('/characters/:_id')
+  async getCharacter(ctx, next) {
+    const { params } = ctx
+    const { _id } = params
+    if (!_id) return (ctx.body = {success: false, err: 'id is required'})
+    const data = await api.wiki.getCharacter(_id)
+    ctx.body = {
+      data: data,
+      success: true
+    }
+  }
+}
+
+
+```
+### 完善家族封面图片
+
+添加字段
+```js
+
+ .populate({
+    path: 'swornMembers.character',
+    select: '_id name profile cname nmid'
+  }).exec()
+
+```
+
+### 突然发现一个问题house.swornMember 下面没有character的数据
+
+```js
+
+
+```
+
+```js
+
+
+```
+
+```js
+
+
+```
+
+```js
+
+
+```
+
+

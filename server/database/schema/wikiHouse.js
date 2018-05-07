@@ -5,14 +5,14 @@ const Mixed = Schema.Types.Mixed
 const WikiHouseSchema = new Schema({
   name: String,
   cname: String,
-  works: String,
+  words: String,
   intro: String,
   cover: String,
   wikiId: Number,
   sections: Mixed, // 混合类型
   swornMembers: [ // 主要成员, 与爬取的数据保持一致
     {
-      characters: {
+      character: {
         type: String,
         ref: 'WikiCharacter' // 指向到另外一张schema
       },

@@ -1,4 +1,4 @@
-import * as api from '../api'
+import api from '../api'
 import config from '../config'
 import { parse as urlParse } from 'url'
 import { parse as queryParse } from 'querystring'
@@ -8,7 +8,7 @@ export async function signature(ctx, next) {
   //
   if (!url) ctx.throw(404)
   url = decodeURIComponent(url)
-  const params = await api.getSignatureAsync(url)
+  const params = await api.wechat.getSignatureAsync(url)
   ctx.body = {
     success: true,
     params: params
@@ -28,7 +28,7 @@ export async function redirect(ctx, next) {
     console.log(`-------------------------------------------------------${JSON.stringify(ctx)}`)
     const {a, b} = ctx.query // 拿到的查询参数
     const params = `${a}_${b}`
-    const url = await api.getAuthorizeURL(scope, target, params)
+    const url = await api.wechat.getAuthorizeURL(scope, target, params)
     console.log('***************************' + url)
     // 将用户重定向到新的地址
     ctx.redirect(url)
@@ -46,7 +46,7 @@ export async function oauth(ctx, next) {
   const urlObj = urlParse(url)
   const params = queryParse(urlObj.query)
   const code = params.code
-  const user = await api.getUserByCode(code)
+  const user = await api.wechat.getUserByCode(code)
   console.log(' oauth ' + user)
   ctx.body = {
     success: true,
