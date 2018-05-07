@@ -1,6 +1,6 @@
 ## 利用修饰器 decoratorr重构koa路由策略
 
-1. 数据 
+1. 数据
 2. 页面
 3. 将本地数据页面链接起来
 
@@ -203,7 +203,7 @@ export class WechatCotroller {
 
 ```
 
-修饰器 是es7的语法 decorator 还不能原生的支持,还是需要babel的编译 
+修饰器 是es7的语法 decorator 还不能原生的支持,还是需要babel的编译
 需要在start.js 引入插件plugin
 
 
@@ -246,9 +246,89 @@ require('./server')
 yarn add babel-plugin-module-alias -D
 yarn add babel-plugin-transform-decorators-legacy -D
 
+WARNING: This project has been renamed to babel-plugin-module-resolver. Install babel-plugin-module-resolver for new features
+
+yarn add babel-plugin-module-resolver babel-plugin-transform-decorators-legacy -D
 
 测试数据
 
 http://localhost:3000/wechat-signature?url=abcd
 
 如果测试通过说明,路由分层已经可以了
+
+## 开发家族数据API
+
+开发前后端接口
+
+位置: routes/wiki.js
+
+copy wechat.js code
+
+
+```js
+
+
+```
+
+
+测试 替换RAP api
+
+位置 server/store/services.js
+
+
+更改 apiUrl 为 baseUrl
+
+
+
+```js
+
+
+```
+### 手动上传家族图片到七牛云
+
+测试域名
+minipro.spzwl.com
+
+```js
+
+
+```
+
+### 位置 store/index.js
+增加
+
+```js
+   return new Vuex.Store({
+    state: {
+      imageCDN: 'http://minipro.spzwl.com',
+```
+
+### path index.vue
+
+```js
+  .desc
+        .words {{item.words}}
+        .cname {{item.name}}
+        .name {{item.cname}}
+      .house-flag
+        img(:src='imageCDN + item.cname + ".jpg"')
+
+        //...
+  computed: {
+      // 映射到mapState
+      ...mapState([
+        'imageCDN',
+
+```
+### index.sass
+
+```js
+    .house-flag
+      width: 100%
+      box-shadow: 0 1px 2px rgba(0, 0, 0, .2)
+      overflow: hidden
+
+      img
+        width: 100%
+
+```

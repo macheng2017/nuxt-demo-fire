@@ -1,4 +1,4 @@
-import Router from 'koa-router'
+// import Router from 'koa-router'
 import { controller, get, post } from '../decorator/router'
 import config from '../config'
 import wechatMiddle from '../wechat-lib/middleware'
@@ -42,9 +42,6 @@ export class WechatCotroller {
 // 就知道它里面包含哪些业务对应过来这个路由
 // 4. get/post 请求在这里可以做更加精细的控制,而不是像之前的router.get
 //  router.post 将整个数据流程整个丢给了下个函数
-
-
-
 
 // export const router = app => {
 //   const router = new Router()

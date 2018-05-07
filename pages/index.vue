@@ -6,6 +6,8 @@
         .words {{item.words}}
         .cname {{item.name}}
         .name {{item.cname}}
+      .house-flag
+        img(:src='imageCDN + item.cname + ".jpg"')
   .character
     .title 主要人物
     .section
@@ -39,6 +41,7 @@
     computed: {
       // 映射到mapState
       ...mapState([
+        'imageCDN',
         'houses',
         'characters',
         'cities'
