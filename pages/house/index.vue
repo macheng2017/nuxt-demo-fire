@@ -45,7 +45,7 @@
         this.$router.push({
           path: '/character',
           query: {
-            id: item._id
+            id: item.character._id
           }
         })
       }
