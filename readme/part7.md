@@ -658,24 +658,114 @@ export class WechatCotroller {
 
 ### 突然发现一个问题house.swornMember 下面没有character的数据
 
+通过查看console vue 查看数据类型
+得到item.character._id 而不是在item._id
 ```js
-
+   methods: {
+      showCharacter(item) {
+        this.$router.push({
+          path: '/character',
+          query: {
+            id: item.character._id
+          }
+        })
+      }
 
 ```
 
-```js
+## 实现商城页面的后台路由功能
 
+add path server/database/schema/product.js
+
+```js
+const mongoose = require('mongoose')
+const Schema = mongoose.Schema
+const Mixed = Schema.Types.Mixed
+
+const ProductSchema = new Schema({
+  price: String,
+  title: String,
+  intro: String,
+  images: [
+    String
+  ],
+  parameters: [
+    {
+      key: String,
+      value: String
+    }
+  ]
+})
 
 ```
 
+### 添加路由
+add path routers/product.js
+copy code from wiki.js
+
 ```js
+import xss from 'xss'
 
 
 ```
+* xss filter malicious string
 
+
+
+添加 处理方法
+
+path server/api/product.js
+
+cp code of wiki.js
 ```js
 
+import mongoose from 'mongoose'
+// 通过@ decorator 然后传入一个路径,
+// 这个路径可以看做一个命名空间,请求地址匹配到这个路径,都应该在这个页面中进行控制的
+// 比如可以用@controller('/wechat')
+
+const Product = mongoose.model('product')
+
+// 获取人物数据
+export async function getProducts(limit = 50) {
+  const data = await Product
+  .find({})
+  .limit(Number(limit))
+  .exec()
+  return data
+}
+// 获取单个人物详细数据
+export async function getProduct(_id) {
+  const data = await Product
+  .findOne({_id: _id})
+  .exec()
+  return data
+}
+export async function save(product) {
+  product = new Product(product)
+  product = await product.save()
+  return product
+}
+export async function update(product) {
+  product = await product.save()
+  return product
+}
+export async function del(product) {
+  await product.remove()
+  return true
+}
 
 ```
+
+## 宝贝上传后台
+
+path: pages/admin
+
+1. 上传
+2. 展示
+3. 上传图片
+4. 编辑
+
+
 
 
