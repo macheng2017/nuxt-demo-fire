@@ -14,8 +14,10 @@
 // 直接通过api来调用所暴露出来的方法了
 import * as wechat from './wechat'
 import * as wiki from './wiki'
+import * as product from './product'
 
 export default {
   wechat: wechat,
-  wiki: wiki
+  wiki: wiki,
+  product: product
 }

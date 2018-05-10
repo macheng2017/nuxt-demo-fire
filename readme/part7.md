@@ -1064,3 +1064,81 @@ transition(name=swing)
 
 
 ```
+
+## 增加后台操作的数据接口
+
+### path store/actions.js
+
+```js
+import axios from 'axios'
+async saveProduct({ state, dispatch }, product) {
+  await axios.post('/api/products', product)
+// 获取商品列表
+  let res = await dispatch('fetchProducts')
+  return res.data.data
+},
+// update
+async putProduct({ state, dispatch }, product) {
+  await axios.put('/api/products', product)
+// 获取商品列表
+  let res = await dispatch('fetchProducts')
+  return res.data.data
+},
+
+```
+
+修改 routers/product.js
+```js
+@controller('/api')
+```
+store/service.js
+
+```js
+  fetchProducts() {
+    console.log(`${baseUrl}/api/products`)
+    return axios.get(`${baseUrl}/api/products`)
+  }
+  fetchProduct(id) {
+    console.log(`${baseUrl}/api/product/${id}`)
+    return axios.get(`${baseUrl}/api/product/${id}`)
+  }
+```
+
+## 增加中间件,存储宝贝的是put 请求的body需要解析
+
+
+### path server/index.js
+```js
+
+const MIDDLEWARES = ['database', 'common', 'router']
+```
+
+### path server/middlewares/common.js
+
+```js
+import koaBody from 'koa-bodyparser'
+// 解析body的中间件
+export const addBody = app => {
+  app.use(koaBody())
+}
+
+
+```
+
+
+yarn add koa-bodyparser
+
+
+### 需要在api中将与数据交互的方法暴露出去
+```js
+
+import * as wechat from './wechat'
+import * as wiki from './wiki'
+import * as product from './product'
+
+export default {
+  wechat: wechat,
+  wiki: wiki,
+  product: product
+}
+```

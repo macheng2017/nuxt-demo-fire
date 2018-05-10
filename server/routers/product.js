@@ -6,7 +6,7 @@ import R from 'ramda'
 // 这个路径可以看做一个命名空间,请求地址匹配到这个路径,都应该在这个页面中进行控制的
 // 比如可以用@controller('/wechat')
 
-@controller('/product')
+@controller('/api')
 export class ProductCotroller {
   // fetch detail of products
   @get('/products')

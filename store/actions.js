@@ -1,4 +1,5 @@
 import Services from './services'
+import axios from 'axios'
 // 通过它来请求签名值的操作
 export default {
   getWechatSignature({ commit }, url) {
@@ -59,5 +60,18 @@ export default {
     // console.log(' fetchProducts data = ' + JSON.stringify(res.data))
     state.user = res.data.data
     return res
+  },
+  async saveProduct({ state, dispatch }, product) {
+    await axios.post('/api/products', product)
+  // 获取商品列表
+    let res = await dispatch('fetchProducts')
+    return res.data.data
+  },
+  // update
+  async putProduct({ state, dispatch }, product) {
+    await axios.put('/api/products', product)
+  // 获取商品列表
+    let res = await dispatch('fetchProducts')
+    return res.data.data
   }
 }

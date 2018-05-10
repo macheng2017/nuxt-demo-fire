@@ -9,7 +9,7 @@ config.dev = !(process.env === 'production')
 const r = path => resolve(__dirname, path)
 const host = process.env.HOST || '127.0.0.1'
 const port = process.env.PORT || 3000
-const MIDDLEWARES = ['database', 'router']
+const MIDDLEWARES = ['database', 'common', 'router']
 
 // 将start重新包装改成class形式
 

@@ -42,12 +42,12 @@ class Services {
     // return {data: {data: [], success: true}}
   }
   fetchProducts() {
-    console.log(`${baseUrl}/wiki/products`)
-    return axios.get(`${baseUrl}/wiki/products`)
+    console.log(`${baseUrl}/api/products`)
+    return axios.get(`${baseUrl}/api/products`)
   }
   fetchProduct(id) {
-    console.log(`${baseUrl}/wiki/product/${id}`)
-    return axios.get(`${baseUrl}/wiki/product/${id}`)
+    console.log(`${baseUrl}/api/product/${id}`)
+    return axios.get(`${baseUrl}/api/product/${id}`)
   }
   fetchUserAndOrders() {
     console.log(`${baseUrl}/api/user`)
