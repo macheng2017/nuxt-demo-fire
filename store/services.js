@@ -46,8 +46,8 @@ class Services {
     return axios.get(`${baseUrl}/wiki/products`)
   }
   fetchProduct(id) {
-    console.log(`${baseUrl}/wiki/products/${id}`)
-    return axios.get(`${baseUrl}/wiki/products/${id}`)
+    console.log(`${baseUrl}/wiki/product/${id}`)
+    return axios.get(`${baseUrl}/wiki/product/${id}`)
   }
   fetchUserAndOrders() {
     console.log(`${baseUrl}/api/user`)

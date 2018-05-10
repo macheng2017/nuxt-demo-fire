@@ -25,12 +25,11 @@ module.exports = {
   /*
   ** Global CSS
   */
-  // css: ['static/css/main.css'],
-  css: [ // 加上后页面固定,先注释掉
-    // {
-    //   src: 'static/sass/base.sass',
-    //   lang: 'sass?indentedSyntax=true'
-    // },
+  css: [
+    {
+      src: 'static/sass/base.sass',
+      lang: 'sass?indentedSyntax=true'
+    },
     {
       src: 'swiper/dist/css/swiper.css'
     }
