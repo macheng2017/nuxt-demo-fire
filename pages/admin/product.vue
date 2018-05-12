@@ -41,6 +41,23 @@
           label 简介
           textarea(v-model='edited.intro', @keyup='editedIntro')
         .input-group
+          label 图片
+          .upload-images
+            .img(v-for='item, index in edited.images')
+              img(:src='imageCDN + item + "?imageView2/1/w/280/h/400/q/75|imageslim"')
+              .tools
+                .material-icon(@click='deleteImg(index)') delete
+            .upload-btn
+              //- svg code instead of icon
+              g#Page-1(stroke='none', stroke-width='1', fill='none', fill-rule='evenodd')
+                g#ic_backup_black_24px(transform='translate(-1.000000, -6.000000)')
+                  polygon#Shape(points='0 0 55 0 55 55 0 55')
+                  path#outline(d='M42.6907609,20.7503727 C41.2853571,13.6200155 35.0230435,8.26708075 27.5,8.26708075 C21.5270342,8.26708075 16.339441,11.6565839 13.7559783,16.6168323 C7.535,17.2781988 2.69875776,22.5484627 2.69875776,28.9347826 C2.69875776,35.7757919 8.25836957,41.3354037 15.0993789,41.3354037 L41.9673913,41.3354037 C47.671677,41.3354037 52.3012422,36.7058385 52.3012422,31.0015528 C52.3012422,25.5452795 48.0643634,21.1223913 42.6907609,20.7503727 Z', stroke='#78909C', stroke-width='3', :stroke-dasharray='upload.dasharray', :stroke-dashoffset='upload.dashoffset')
+                  path#Shape(d='M42.6907609,20.7503727 C41.2853571,13.6200155 35.0230435,8.26708075 27.5,8.26708075 C21.5270342,8.26708075 16.339441,11.6565839 13.7559783,16.6168323 C7.535,17.2781988 2.69875776,22.5484627 2.69875776,28.9347826 C2.69875776,35.7757919 8.25836957,41.3354037 15.0993789,41.3354037 L41.9673913,41.3354037 C47.671677,41.3354037 52.3012422,36.7058385 52.3012422,31.0015528 C52.3012422,25.5452795 48.0643634,21.1223913 42.6907609,20.7503727 Z M31.6335404,26.8680124 L31.6335404,35.1350932 L23.3664596,35.1350932 L23.3664596,26.8680124 L17.1661491,26.8680124 L27.5,16.5341615 L37.8338509,26.8680124 L31.6335404,26.8680124 Z', fill='#CFD8DC', fill-rule='nonzero')
+              br
+              .text 上传图片
+              input(type='file', @change='uploadImage($event)')
+        .input-group
           label 参数
           .parameters
             .inputs(v-for='item, index in edited.parameters')
@@ -65,8 +82,10 @@
 
 <script>
 import { mapState } from 'vuex'
-// import axios from 'axios'
+import axios from 'axios'
 import vSnackbar from '~/components/snackbar'
+import randomToken from 'random-token'
+import Uploader from 'qiniu-web-uploader'
 
 export default {
   layout: 'admin', // 不在使用default模板
@@ -82,6 +101,10 @@ export default {
       edited: {
         images: [],
         parameters: []
+      },
+      upload: {
+        dasharray: 0,
+        dashoffset: 0
       },
       editing: false
     }
@@ -107,6 +130,11 @@ export default {
       this.isProduct = true
       this.editing = true
     },
+
+    async deleteProduct(item) {
+      await this.$store.dispatch('deleteProduct', item)
+    },
+
     createProduct() {
       this.edited = {
         images: [],
@@ -115,9 +143,7 @@ export default {
       this.isProduct = false
       this.editing = true
     },
-    async deleteProduct(item) {
-      await this.$store.dispatch('deleteProduct', item)
-    },
+
     async saveEdited() {
       // 根据isProduct状态判断是 编辑/新增
       this.isProduct
@@ -143,6 +169,46 @@ export default {
     },
     removeParameter(index) {
       this.edited.parameters.splice(index, 1)
+    },
+    // 获取token
+    async getUptoken(key) {
+      let res = await axios.get('/qiniu/token', {
+        params: {
+          key: key
+        }
+      })
+      return res.data.data.token
+    },
+    // 上传图片 e是事件
+    async uploadImage(e) {
+      // this.upload.dashoffset = this.upload.dasharray
+      let file = e.target.files[0]
+      let key = randomToken(32)
+      // 通过这个key 传递给七牛,返回一个凭证
+      key = `products/${key}`
+      let token = await this.getUptoken(key)
+      console.log('token ' + token)
+      let uptoken = {
+        uptoken: token,
+        key: Buffer.from(key).toString('base64')
+      }
+      // 华东z0
+      // Uploader.QINIU_UPLOAD_URL = '//up-z0.qiniu.com'
+      // const url = '//up-z0.qiniu.com'
+      let uploader = new Uploader(file, uptoken)
+      // listener upload process
+      uploader.on('progress', () => {
+        console.log(uploader.percent)
+        // let dashoffset = this.upload.dasharray * (1 - uploader.percent)
+        // this.upload.dashoffset = dashoffset
+      })
+      let res = await uploader.upload()
+      uploader.cancel()
+      console.log(res)
+      this.edited.images.push(res.key)
+    },
+    deleteImg(index) {
+      this.edited.images.splice(index, 1)
     }
   },
   components: {

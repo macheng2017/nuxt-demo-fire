@@ -1,20 +1,28 @@
-// import qiniu from 'qiniu'
-// import config from '../config'
+import qiniu from 'qiniu'
+import config from '../config'
 import { exec } from 'shelljs'
 
 // qiniu.config.ACCESS_KEY = config.qiniu.AK
 // qiniu.config.SECRET_KEY = config.qiniu.SK
+const accessKey = config.qiniu.AK
+const secretKey = config.qiniu.SK
 // 存储空间名称
 const bucket = ' miniprogram'
 // https://developer.qiniu.com/kodo/sdk/1289/nodejs#5
 // 资源管理相关的操作首先要构建BucketManager对象：
-// var mac = new qiniu.auth.digest.Mac(accessKey, secretKey)
+const mac = new qiniu.auth.digest.Mac(accessKey, secretKey)
 // var config = new qiniu.conf.Config()
 // // config.useHttpsDomain = true
 // // 华东地区的空间qiniu.zone.Zone_z0
 // config.zone = qiniu.zone.Zone_z0
 // var bucketManager = new qiniu.rs.BucketManager(mac, config)
-
+export const uptoken = (key) => {
+  const options = {
+    scope: bucket + ':' + key
+  }
+  const putPolicy = new qiniu.rs.PutPolicy(options)
+  return putPolicy.uploadToken(mac)
+}
 export const fetchImage = async(url, key) => {
   // const client = new qiniu.rs.Client()
   // promise 封装下

@@ -1142,3 +1142,19 @@ export default {
   product: product
 }
 ```
+
+## 补全上一个功能:为后台添加上传图片功能,图片上传到七牛
+
+1. 之前上传图片是爬取的图片地址,从服务器端上传
+2. 这次是从客户端上传,多了个获取七牛token的步骤
+
+
+path pages/admin/product.vue
+
+客户端写了获取token的请求
+
+到服务器端实现生成token的 方法
+
+path server/routers/product.js
+
+代码参考 github commit
