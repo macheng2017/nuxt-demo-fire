@@ -73,5 +73,14 @@ export default {
   // 获取商品列表
     let res = await dispatch('fetchProducts')
     return res.data.data
+  },
+  // update
+  async deleteProduct({ state, dispatch }, product) {
+    console.log('product._id ' + product._id)
+    await axios.delete(`/api/products/${product._id}`)
+    // 删除商品之后,下面更新下商品列表
+  // 获取商品列表
+    let res = await dispatch('fetchProducts')
+    return res.data.data
   }
 }

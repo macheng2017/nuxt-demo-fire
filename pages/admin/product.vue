@@ -22,7 +22,7 @@
           td
             button.btn(@click='editProduct(item)') edit
               .material-icon edit
-            button.btn(@click='deleteProduct(item)')
+            button.btn(@click='deleteProduct(item)') delete
               .material-icon delete
   .edit-product(:class='{active: editing}')
     .edit-header
@@ -114,6 +114,9 @@ export default {
       }
       this.isProduct = false
       this.editing = true
+    },
+    async deleteProduct(item) {
+      await this.$store.dispatch('deleteProduct', item)
     },
     async saveEdited() {
       // 根据isProduct状态判断是 编辑/新增

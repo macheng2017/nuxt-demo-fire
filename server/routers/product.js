@@ -100,16 +100,20 @@ export class ProductCotroller {
     }
   }
   // del product
-  @del('/products')
+  @del('/products/:_id')
   async delProducts(ctx, next) {
-    let body = ctx.request.body
-    const { _id } = body
+    const params = ctx.params
+    const { _id } = params
+    console.log('@del ' + JSON.stringify(params))
     if (!_id) {
       return (ctx.body = {success: false, err: 'id is required'})
     }
-    let product
+    let product = await api.product.getProduct(_id)
+    if (!product) {
+      return (ctx.body = {success: false, err: 'product not exist'})
+    }
     try {
-      product = await api.product.del(_id)
+      await api.product.del(product)
       ctx.body = {
         success: true
       }
