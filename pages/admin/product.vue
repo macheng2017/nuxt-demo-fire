@@ -86,6 +86,7 @@ import axios from 'axios'
 import vSnackbar from '~/components/snackbar'
 import randomToken from 'random-token'
 import Uploader from 'qiniu-web-uploader'
+// import Uploader from '../../server/libs/upload'
 
 export default {
   layout: 'admin', // 不在使用default模板
