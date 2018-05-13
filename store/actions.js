@@ -2,6 +2,40 @@ import Services from './services'
 import axios from 'axios'
 // 通过它来请求签名值的操作
 export default {
+  // 服务器同步渲染
+  nuxtServerInit({commit}, {req}) {
+    if (req.session && req.session.user) {
+      // 如果页面是直接渲染出来的看下有没有session
+      const {email, nickname, avatarUrl} = req.session.user
+      // 随后实现session功能
+      const user = {
+        email,
+        nickname,
+        avatarUrl
+      }
+      commit('SET_USER', user)
+    }
+  },
+  // 登录
+  async login({commit}, {email, password}) {
+    try {
+      let res = await axios.post('/admin/login', {
+        email,
+        password
+      })
+      let {data} = res
+      if (data.success) commit('SET_USER', data.data)
+    } catch (err) {
+      // 可能登录的时候服务器正在重启,或者后台有些错误
+      if (err.response.status === 401) {
+        throw new Error('来错地方了')
+      }
+    }
+  },
+  async logout({commit}) {
+    await axios.post('/admin/logout')
+    commit('SET_USER', null)
+  },
   getWechatSignature({ commit }, url) {
     return Services.getWechatSignature(url)
   },
