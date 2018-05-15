@@ -2,6 +2,8 @@ import Router from 'koa-router'
 import { resolve } from 'path'
 import glob from 'glob'
 import _ from 'lodash'
+import R from 'ramda'
+import { returnStatement } from 'babel-types';
 export let routersMap = new Map()
 
 export const symbolPrefix = Symbol('prefix')
@@ -68,4 +70,28 @@ export const put = path => router({
 export const del = path => router({
   method: 'del',
   path: path
+})
+
+//封装isArray, 使之成为一个数组
+export const isAarry = c => _.isArray(c) ? c : [c]
+const decorate = (args, middleware) => {
+  let [target, key, descriptor] = args
+  target[key] = isArray(target[key])
+  // 把middleware给踢出去
+  target[key].unshift(middleware)
+  return descriptor
+}
+// 将所有参数传递给另外一个方法
+export const convert = middleware => (...arges) => decorate(args, middleware)
+
+export const required = rules => convert(async (ctx, next) => {
+  let errors = []
+  const passRules = R.forEachObjIndexed(
+    (value, key) => {
+      errors = R.filter(i => !R.has(i, ctx.request[key]))(value)
+    }
+  )
+  passRules(rules)
+  if (errors.length) ctx.throw(412, `${errors.join(', ')} 参数缺失`)
+  await next()
 })
