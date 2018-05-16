@@ -3,12 +3,11 @@ import { resolve } from 'path'
 import glob from 'glob'
 import _ from 'lodash'
 import R from 'ramda'
-import { returnStatement } from 'babel-types';
 export let routersMap = new Map()
 
 export const symbolPrefix = Symbol('prefix')
 // 如果是数组,否则包装成数组
-export const isAarry = v => _.isArray(v) ? v : [v]
+export const isArray = v => _.isArray(v) ? v : [v]
 
 export const normalizePath = path => path.startsWith('/') ? path : `/${path}`
 
@@ -27,7 +26,7 @@ export default class Route {
     for (let [conf, controller] of routersMap) {
       // 把每一个路由文件中的controller取出来跟他们的路由进行一一匹配
       // 来判断下是否是数组
-      const controllers = isAarry(controller)
+      const controllers = isArray(controller)
       // 改动下微信的路由
       let prefixPath = conf.target[symbolPrefix]
       // symbolPrefix 是什么意思?
@@ -72,8 +71,8 @@ export const del = path => router({
   path: path
 })
 
-//封装isArray, 使之成为一个数组
-export const isAarry = c => _.isArray(c) ? c : [c]
+// 封装isArray, 使之成为一个数组
+// export const isAarry = c => _.isArray(c) ? c : [c]
 const decorate = (args, middleware) => {
   let [target, key, descriptor] = args
   target[key] = isArray(target[key])
@@ -82,7 +81,7 @@ const decorate = (args, middleware) => {
   return descriptor
 }
 // 将所有参数传递给另外一个方法
-export const convert = middleware => (...arges) => decorate(args, middleware)
+export const convert = middleware => (...args) => decorate(args, middleware)
 
 export const required = rules => convert(async (ctx, next) => {
   let errors = []

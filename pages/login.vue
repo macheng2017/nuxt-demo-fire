@@ -35,9 +35,9 @@
                 path#Shape(d='M0.00421875,16.7384375 L3.91015625,16.7384375 L3.91015625,19.4015625 L0.00421875,19.4015625 L0.00421875,16.7384375 Z M28.5904687,16.7384375 L32.49625,16.7384375 L32.49625,19.4015625 L28.590625,19.4015625 L28.590625,16.7384375 L28.5904687,16.7384375 Z M11.9165625,0.053125 L20.583125,0.053125 C20.6995312,0.053125 20.7940625,0.14796875 20.7940625,0.264375 L20.7940625,2.22625 C20.7940625,2.3425 20.6995312,2.4371875 20.583125,2.4371875 L11.9165625,2.4371875 C11.8003125,2.4371875 11.705625,2.3425 11.705625,2.22625 L11.705625,0.264375 C11.7059375,0.14796875 11.8003125,0.0534375 11.9165625,0.0534375 L11.9165625,0.053125 Z')
       .form
         input.form-control(v-model='user.email')
-        input.form-control(type='password', v-modal='user.password')
+        input.form-control(type='password', v-model='user.password')
         button.btn.login-btn(@click='login') 登录
- v-snackbar
+  v-snackbar
 </template>
 <script>
 import vSnackbar from '~/components/snackbar'
@@ -68,4 +68,3 @@ export default {
 </script>
 
 <style lang="sass" scoped src='~/static/sass/admin.sass'></style>
-

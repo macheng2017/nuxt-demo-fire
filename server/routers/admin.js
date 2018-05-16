@@ -8,22 +8,13 @@ const User = mongoose.model('User')
 @controller('/admin')
 export class AdminCotroller {
 
-  @post('user')
+  @post('login')
   @required({body: ['email', 'password']})
   // 增加一个中间件,规定请求传递过来两个字段,必须有email,password否则不合法
   async logoin(ctx, next) {
     const { email, password } = ctx.request.body
-    let user
-    let match = null //是否匹配
-    try {
-      user = await User.findOne({email: email}).exec()
-
-      if (user) {
-        match = await User.comparePassword(password, user.password)
-      }
-    } catch (e) {
-      throw new Error(e)
-    }
+    const data = await api.admin.login(email, password)
+    const {user, match} = data
     if (match) {
       // 重新设置session
       ctx.session.user = {

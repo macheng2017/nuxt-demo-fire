@@ -23,7 +23,7 @@ export default {
         email,
         password
       })
-      let {data} = res
+      const {data} = res
       if (data.success) commit('SET_USER', data.data)
     } catch (err) {
       // 可能登录的时候服务器正在重启,或者后台有些错误
