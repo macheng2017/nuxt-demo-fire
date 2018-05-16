@@ -24,7 +24,9 @@ export default {
         password
       })
       const {data} = res
-      if (data.success) commit('SET_USER', data.data)
+      console.log('store/actions.js data ' + JSON.stringify(data))
+      if (data.success) commit('SET_USER', data)
+      return data
     } catch (err) {
       // 可能登录的时候服务器正在重启,或者后台有些错误
       if (err.response.status === 401) {

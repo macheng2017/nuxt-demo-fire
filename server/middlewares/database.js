@@ -31,10 +31,11 @@ mongoose.connection.on('error', err => {
 })
 mongoose.connection.on('open', async () => {
   console.log('Connected to MongoDB', config.db)
-  // 在连接数据库的时候将数据导入进行去
+  // 在webapp启动的时候,连接数据库查询有没有数据,如果没有,的时候将数据导入进行去
   // 拿到模型
   const WikiHouses = mongoose.model('WikiHouse')
   const WikiCharacter = mongoose.model('WikiCharacter')
+  const User = mongoose.model('User')
 
   const existWikiHouses = await WikiHouses.find({}).exec()
   const existWikiCharacter = await WikiCharacter.find({}).exec()
@@ -44,5 +45,14 @@ mongoose.connection.on('open', async () => {
   // 1.wikiCharacters schema 需要先处理下 由于其实用了自定义 _id 也就是 nmId
   // 这样就可以通过wikiHouse中的ref: 查到 里面的人物数据
   // 2. 需要在插入之前通过formatdata 整理
-
+  let user = await User.findOne({email: 'gos360@163.com'}).exec()
+  if (!user) {
+    console.log('写入管理员数据')
+    user = new User({
+      email: 'gos360@163.com',
+      password: '123456',
+      role: 'admin'
+    })
+  }
+  await user.save()
 })

@@ -58,7 +58,8 @@ export default {
         return ''
       }
       let res = await this.$store.dispatch('login', this.user)
-      if (!res.success) this.$router.push('/admin')
+      console.log('login page res ' + res)
+      if (res.success) this.$router.push('/admin')
     }
   },
   components: {

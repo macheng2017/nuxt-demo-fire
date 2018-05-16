@@ -32,11 +32,12 @@ export class AdminCotroller {
           avatarUrl: user.avatarUrl
         }
       })
+    } else {
+      return (ctx.body = {
+        success: false,
+        err: '账号或者密码错误'
+      })
     }
-    return (ctx.body = {
-      success: true,
-      err: '密码错误'
-    })
   }
   @post('logout')
   async logout (ctx, next) {
