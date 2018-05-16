@@ -2,7 +2,8 @@ import Services from './services'
 import axios from 'axios'
 // 通过它来请求签名值的操作
 export default {
-  // 服务器同步渲染
+  // 服务器同步渲染,如果是同步服务器端渲染页面的话,
+  // 会从服务器端将会话session带过来,判断session信息有没有,然后设置用户信息
   nuxtServerInit({commit}, {req}) {
     if (req.session && req.session.user) {
       // 如果页面是直接渲染出来的看下有没有session
@@ -24,8 +25,8 @@ export default {
         password
       })
       const {data} = res
-      console.log('store/actions.js data ' + JSON.stringify(data))
-      if (data.success) commit('SET_USER', data)
+      console.log('store/actions.js data ' + JSON.stringify(data.data))
+      if (data.success) commit('SET_USER', data.data)
       return data
     } catch (err) {
       // 可能登录的时候服务器正在重启,或者后台有些错误

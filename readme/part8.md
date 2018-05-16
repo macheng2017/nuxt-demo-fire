@@ -128,3 +128,19 @@ export class AdminCotroller {
 
 path: middlewares/database.js
 
+
+## 登录成功后需要通过会话的方式同步登录的状态
+
+
+add /middleware/auth.js
+
+middleware放置前端的中间件
+
+
+### 拿到store redirect 每次打开后台页面先经过中间件的过滤使检查其登录状态
+
+在server/index.js
+需要重新设置session,防止拿不到session
+
+在渲染页面之前,将session同步到req中
+
