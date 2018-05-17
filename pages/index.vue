@@ -28,6 +28,7 @@
 <script>
   import { mapState } from 'vuex'
   export default {
+    middleware: 'wechat-auth',
     asyncData({ req }) {
       return {
         name: req ? 'server' : 'client'
