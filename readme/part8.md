@@ -144,7 +144,7 @@ middleware放置前端的中间件
 
 在渲染页面之前,将session同步到req中
 
-## 
+## 增加前端微信二跳中间件
 
 * 管理员与用户共用同一套管理模型
 
@@ -154,3 +154,11 @@ middleware放置前端的中间件
 在pages/index.vue 中增加一个微信中间件
 
 一锅端掉微信公众号-小程序的用户资料获取_慕课手记  https://www.imooc.com/article/details/id/19204
+
+
+1. 在首页中增加   middleware: 'wechat-auth', 微信的中间件, 
+2. 每次打开首页就会走中间件,如果判断authuser没有的话,就会跳转到wechat-redirect
+
+
+
+https://mp.weixin.qq.com/wiki?t=resource/res_main&id=mp1421140842

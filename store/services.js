@@ -10,6 +10,9 @@ class Services {
   getUserByOAuth(url) {
     return axios.get(`${baseUrl}/wechat-oauth?url=${url}`)
   }
+  getWechatOAuth(url) {
+    return axios.get(`${baseUrl}/wechat-oauth?url=${encodeURIComponent(url)}`)
+  }
   // 获取家族的数据
   fetchHouse(id) {
     console.log(`${baseUrl}/wiki/houses/${id}`)

@@ -20,8 +20,9 @@ const UserSchema = new Schema({
   address: String,
   province: String,
   country: String,
-  gender: String,
+  sex: String,
   email: String,
+  headimgurl: String,
   password: String,
   hashed_password: String,
   loginAttempts: {

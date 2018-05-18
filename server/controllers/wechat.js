@@ -26,8 +26,8 @@ export async function redirect(ctx, next) {
     const scope = 'snsapi_userinfo'
     // console.log('-------------------------------------------------------' + ctx.query.url)
     console.log(`-------------------------------------------------------${JSON.stringify(ctx)}`)
-    const {a, b} = ctx.query // 拿到的查询参数
-    const params = `${a}_${b}`
+    const {visit, id} = ctx.query // visit 跳转地址,以前是写死的,现在重构下
+    const params = id ? `${visit}_${id}` : visit
     const url = await api.wechat.getAuthorizeURL(scope, target, params)
     console.log('***************************' + url)
     // 将用户重定向到新的地址
@@ -47,6 +47,8 @@ export async function oauth(ctx, next) {
   const params = queryParse(urlObj.query)
   const code = params.code
   const user = await api.wechat.getUserByCode(code)
+  // 更新session
+  ctx.session.user = user
   console.log(' oauth ' + user)
   ctx.body = {
     success: true,

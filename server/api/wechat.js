@@ -1,4 +1,6 @@
 import { getWechat, getOAuth } from '../wechat'
+import mongoose from 'mongoose'
+const User = mongoose.model('User')
 // 拿到case
 const client = getWechat()
 // 拿到全局票据
@@ -24,6 +26,34 @@ export async function getUserByCode(code) {
   console.log('------------- getUserByCode oauth ' + JSON.stringify(oauth))
   const data = await oauth.fetchAccessToken(code)
   console.log('------------- getUserByCode data ' + data)
-  const user = await oauth.getUserInfo(data.access_token, data.openid)
-  return user
+  // 只开发一个应用可以通过openid,如果是多个则是unionid
+  // const user = await oauth.getUserInfo(data.access_token, data.openid)
+  // 拿到的用户资料
+  // https://mp.weixin.qq.com/wiki?t=resource/res_main&id=mp1421140842
+  const user = await oauth.getUserInfo(data.access_token, data.unionid)
+  console.log(' api/wechat user ' + JSON.stringify(user))
+  // 去除重复
+  const existUser = await User.findOne({unionid: data.unionid}).exec()
+  console.log('api/wechat existUser ' + existUser)
+  if (!existUser) {
+    let newUser = new User({
+      openid: [data.openid],
+      unionid: data.unionid,
+      nickname: user.nickname,
+      province: user.province,
+      country: user.country,
+      headimgurl: user.headimgurl,
+      city: user.city,
+      sex: user.sex
+    })
+    await newUser.save()
+  }
+  return {
+    nickname: user.nickname,
+    province: user.province,
+    country: user.country,
+    headimgurl: user.headimgurl,
+    city: user.city,
+    sex: user.sex
+  }
 }

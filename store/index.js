@@ -14,7 +14,8 @@ const createStore = () => {
       currentProduct: [],
       user: null,
       currentHouse: {},
-      currentCharacter: {}
+      currentCharacter: {},
+      authUser: null
     },
     getters,
     actions,

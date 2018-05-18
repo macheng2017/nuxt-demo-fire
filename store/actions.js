@@ -45,6 +45,13 @@ export default {
   getUserByOAuth({ commit }, url) {
     return Services.getUserByOAuth(url)
   },
+  getWechatOAuth({ commit }, url) {
+    return Services.getWechatOAuth(url)
+  },
+  setAuthUser({ commit }, authUser) {
+    commit('SET_AUTHUSER', authUser)
+  },
+
   async fetchHouses({ state }) {
     const res = await Services.fetchHouses()
     // console.log(' data = ' + JSON.stringify(res.data.data))

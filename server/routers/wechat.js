@@ -25,6 +25,7 @@ export class WechatCotroller {
   async wechatSignature(ctx, next) {
     await signature(ctx, next)
   }
+  // 跳转到目标地址(二跳)
   @get('/wechat-redirect')
   async wechatRedirect(ctx, next) {
     await redirect(ctx, next)
