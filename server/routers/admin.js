@@ -1,4 +1,9 @@
-import { controller, get, post, required } from '../decorator/router'
+import {
+  controller,
+  get,
+  post,
+  required
+} from '../decorator/router'
 import api from '../api'
 // 通过@ decorator 然后传入一个路径,
 // 这个路径可以看做一个命名空间,请求地址匹配到这个路径,都应该在这个页面中进行控制的
@@ -7,12 +12,20 @@ import api from '../api'
 export class adminController {
 
   @post('login')
-  @required({body: ['email', 'password']})
+  @required({
+    body: ['email', 'password']
+  })
   // 增加一个中间件,规定请求传递过来两个字段,必须有email,password否则不合法
   async login(ctx, next) {
-    const { email, password } = ctx.request.body
+    const {
+      email,
+      password
+    } = ctx.request.body
     const data = await api.admin.login(email, password)
-    const {user, match} = data
+    const {
+      user,
+      match
+    } = data
     if (match) {
       // 添加用户权限的判断
       if (user.role !== 'admin') {
@@ -45,7 +58,7 @@ export class adminController {
     })
   }
   @post('logout')
-  async logout (ctx, next) {
+  async logout(ctx, next) {
     ctx.session = null
     ctx.body = {
       success: true

@@ -1,8 +1,9 @@
-RAP  http://rapapi.org/
+RAP http://rapapi.org/
 
 位置: pages/index.vue
 
-使用pug
+使用 pug
+
 ```js
 <template lang='pug'>
   .container
@@ -36,11 +37,7 @@ RAP  http://rapapi.org/
         .title {{item.title}}
         .body {{item.boby}}
 </template>
-
-
-
 ```
-
 
 ```js
 <script>
@@ -89,9 +86,10 @@ RAP  http://rapapi.org/
 </script>
 ```
 
-添加获取数据的的service
+添加获取数据的的 service
 
 位置: store/actions.js
+
 ```js
  async fetchHouses({ state }) {
     const res = await Services.fetchHouses()
@@ -108,8 +106,8 @@ RAP  http://rapapi.org/
     state.characters = res.data.data
     return res
   }
-
 ```
+
 path: store/service.js
 
 ```js
@@ -127,11 +125,10 @@ path: store/service.js
   fetchCharacters() {
     return axios.get(`${apiUrl}/wiki/characters`)
   }
-
-
 ```
+
 path: store/index.js
-在store/index中同步一下
+在 store/index 中同步一下
 
 ```js
    state: {
@@ -140,194 +137,44 @@ path: store/index.js
       characters: []
     },
 ```
+
 安装 pug
 yarn add pug
 
-为首页添加css样式
+为首页添加 css 样式
+
 ```html
 <style scoped lang='sass' src='~static/sass/index.sass'></style>
 ```
 
 ### path: static/sass/index.sass
 
-1. 先引入基础定义(字体,颜色,全局)
+1.  先引入基础定义(字体,颜色,全局)
 
 ```css
-@import '~static/sass/mixin'
-@import '~static/sass/color'
-@import '~static/sass/var'
-
-.container
-  +border-box
-  padding-bottom: $navHeight
-
-.house
-  padding: 0 0 $spacing
-  +x-scroll
-
-  .house-content
-    margin-left: $spacing/2
-    width: 90%
-    font-size: 0
-    display: inline-block
-
-    &:first-child
-      margin-left: $spacing
-
-    .house-img-wrapper
-      width: 100%
-      box-shadow: 0 1px 2px rgba(0, 0, 0, .2)
-      overflow: hidden
-
-      img
-        width: 100%
-
-    .house-text
-      width: 100%
-      padding: $spacing/2 0
-      +font-dpr(10px)
-      +border-box
-      +break-word
-
-      .words
-        font-size: 1.4em
-        color: $grey-700
-      .cname
-        font-size: 1.9em
-        color: $black
-      .name
-        font-size: 1.8em
-        color: $grey-700
-
-.povCharacters
-  padding: 0 $spacing
-  margin-bottom: $spacing
-  background: $white
-  +border-box
-
-  .title
-    +font-dpr(19px)
-    padding: $spacing 0
-    border-top: 1px solid $grey-400
-
-  .povCharacter-wrapper
-    padding: 0 0 $spacing
-    border-bottom: 1px solid $grey-400
-    font-size: 0
-
-    .povCharacter-content:nth-child(2n)
-      margin-left: 5%
-
-    .povCharacter-content
-      width: 47.5%
-      +break-word
-      display: inline-block
-      margin-bottom: $spacing
-
-      img
-        width: 100%
-        box-shadow: 0 0 2px rgba(0, 0, 0, .2)
-        margin-bottom: $spacing/3
-
-      .povCharacter-text
-        +font-dpr(10px)
-        // line-height: $spacing*1.1
-
-        .cname
-          font-size: 1.5em
-          color: $black
-        .name
-          font-size: 1.2em
-          color: $grey-600
-        .playedBy
-          font-size: 1.2em
-          color: $grey-600
-
-.city
-  padding: 0 $spacing $spacing
-  +border-box
-  +font-dpr(10px)
-  line-height: 2em
-  position: relative
-
-  .city-title
-    font-size: 1.9em
-    padding-bottom: $spacing
-
-  .city-bg
-    position: absolute
-    width: 100%
-    z-index: 0
-    top: 3rem
-    opacity: .3
-
-  .city-intro
-    font-size: 1.6em
-    color: $grey-800
-
-  .city-item
-    font-size: 1.45em
-    color: $grey-700
-    margin-top: $spacing*2
-
+@import "~static/sass/mixin" @import "~static/sass/color" @import "~static/sass/var" .container +border-box padding-bottom: $navHeight .house padding: 0 0 $spacing +x-scroll .house-content margin-left: $spacing/2 width: 90% font-size: 0 display: inline-block &:first-child margin-left: $spacing .house-img-wrapper width: 100% box-shadow: 0 1px 2px rgba(0, 0, 0, .2) overflow: hidden img width: 100% .house-text width: 100% padding: $spacing/2 0 +font-dpr(10px) +border-box +break-word .words font-size: 1.4em color: $grey-700 .cname font-size: 1.9em color: $black .name font-size: 1.8em color: $grey-700 .povCharacters padding: 0 $spacing margin-bottom: $spacing background: $white +border-box .title +font-dpr(19px) padding: $spacing 0 border-top: 1px solid $grey-400 .povCharacter-wrapper padding: 0 0 $spacing border-bottom: 1px solid $grey-400 font-size: 0 .povCharacter-content:nth-child(2n) margin-left: 5% .povCharacter-content width: 47.5% +break-word display: inline-block margin-bottom: $spacing img width: 100% box-shadow: 0 0 2px rgba(0, 0, 0, .2) margin-bottom: $spacing/3 .povCharacter-text +font-dpr(10px) // line-height: $spacing*1.1 .cname font-size: 1.5em color: $black .name font-size: 1.2em color: $grey-600 .playedBy font-size: 1.2em color: $grey-600 .city padding: 0 $spacing $spacing +border-box +font-dpr(10px) line-height: 2em position: relative .city-title font-size: 1.9em padding-bottom: $spacing .city-bg position: absolute width: 100% z-index: 0 top: 3rem opacity: .3 .city-intro font-size: 1.6em color: $grey-800 .city-item font-size: 1.45em color: $grey-700 margin-top: $spacing*2;
 ```
 
 ### mixin.sass
 
 ```css
-@mixin font-dpr($font-size)
-  font-size: $font-size
-  [data-dpr='2'] &
-    font-size: $font-size * 2
-  [data-dpr='3'] &
-    font-size: $font-size * 3
-
-@mixin size-dpr($size, $properties...)
-  @each $property in $properties
-    #{$property}: $size
-    [data-dpr='2'] &
-      #{$property}: $size * 2
-    [data-dpr='3'] &
-      #{$property}: $size * 3
-
-
-@mixin text-overflow
-  width: 100%
-  overflow: hidden
-  white-space: nowrap
-  text-overflow: ellipsis
-
-@mixin x-scroll
-  overflow-y: hidden
-  overflow-x: scroll
-  -webkit-overflow-scrolling: touch
-  white-space: nowrap
-
-@mixin y-scroll
-  overflow-x: hidden
-  overflow-y: scroll
-  -webkit-overflow-scrolling: touch
-
-@mixin break-word
-  word-wrap: break-word
-  white-space: normal
-
-@mixin border-box
-  box-sizing: border-box
-  -webkit-box-sizing: border-box
-  -moz-box-sizing: border-box
-
-@mixin display-flex
-  display: flex
-  display: -webkit-flex
-  display: -webkit-box
-  display: -ms-flexbox
-
-@mixin flex-column
-  -webkit-box-orient: vertical
-  -webkit-box-direction: normal
-  -ms-flex-direction: column
-  flex-direction: column
+@mixin font-dpr($font-size) font-size: $font-size [data-dpr= "2" ] & font-size: $font-size *
+  2 [data-dpr= "3" ] & font-size: $font-size * 3 @mixin size-dpr(
+    $size,
+    $properties...
+  )
+  @each $property in $properties #{$property}: $size [data-dpr= "2" ] &
+  #{$property}: $size * 2 [data-dpr= "3" ] & #{$property}: $size * 3 @mixin
+  text-overflow width: 100% overflow: hidden white-space: nowrap text-overflow:
+  ellipsis @mixin x-scroll overflow-y: hidden overflow-x:
+  scroll -webkit-overflow-scrolling: touch white-space: nowrap @mixin y-scroll
+  overflow-x: hidden overflow-y: scroll -webkit-overflow-scrolling: touch @mixin
+  break-word word-wrap: break-word white-space: normal @mixin border-box
+  box-sizing: border-box -webkit-box-sizing: border-box -moz-box-sizing:
+  border-box @mixin display-flex display: flex display: -webkit-flex display:
+  -webkit-box display: -ms-flexbox @mixin flex-column -webkit-box-orient:
+  vertical -webkit-box-direction: normal -ms-flex-direction: column
+  flex-direction: column;
 ```
 
 ### var.sass
@@ -382,10 +229,8 @@ $caption:                    13px
 $light:                      300
 $regular:                    400
 $semibold:                   600
-
-
-
 ```
+
 ### color.sass
 
 ```css
@@ -479,136 +324,39 @@ $material-cdn: 'https://cdn.bootcss.com/material-design-icons/3.0.0/iconfont/Mat
   direction: ltr
   -webkit-font-smoothing: antialiased
 ```
+
 ### base.sass
 
 ```css
-@import './color'
-@import './icon'
-@import './var'
-@import './mixin'
-
-html, body
-  margin: 0
-  padding: 0
-  width: 100%
-  height: 100%
-  letter-spacing: 1px
-  font-family: "Source Sans Pro", Arial, sans-serif
-  overflow: hidden
-  >div
-    width: inherit
-    height: inherit
-
-  #app
-    width: 100%
-    height: 100%
-
-a
-  text-decoration: none
-  color: $black
-
-p, h1, h2, h3, h4, h5, h6
-  margin: 0
-
-input
-  min-height: 32px
-  color: rgba(0, 0, 0, .54)
-  border-color: rgba(0, 0, 0, .12)
-  border-width: 1px
-  border-radius: 2px
-  padding: 0 5px
-
-  &:focus, &:active
-    border-color: rgba(0, 0, 0, .22)
-    outline: 0
-    box-shadow: none
-
-#main
-  width: 100%
-  height: 100%
-
-  .container
-    width: 100%
-    height: 100%
-    text-align: justify
-    +y-scroll
-    transition: all .5s cubic-bezier(.55, 0, .1, 1)
-
-    >*
-      width: 100%
-
-.page-enter-active, .page-leave-active
-  transition: opacity .1s
-
-.page-enter, .page-leave-to
-  opacity: 0
-
-.slide-left-enter, .slide-right-leave-to
-  opacity: 0
-  transform: translateX(100%)
-  -webkit-transform: translateX(100%)
-
-.slide-left-leave-active, .slide-right-enter
-  opacity: 0
-  transform: translateX(0)
-  -webkit-transform: translateX(0)
-
-.swiper-pagination-bullet
-  background-color: $white !important
-  border: 1px solid $grey
-  opacity: .7 !important
-.swiper-pagination-bullet-active
-  background-color: $grey-400 !important
-
-
-
-
-.table
-  background-color: $white
-  border: 0
-  box-shadow: 0 -1px 0 rgba(0, 0, 0, 0.06), 0 0 3px rgba(0, 0, 0, 0.18), 0 1px 3px rgba(0, 0, 0, 0.18)
-  margin-top: 16px
-  margin-bottom: 16px
-  width: 100%
-
-
-  tbody
-    &:first-child > tr:first-child
-      td,th
-        border-top: 0
-
-
-    tr:hover
-      background-color: $white
-
-  td,th
-    border-top: 1px solid $grey-300
-    font-size: 20px
-    line-height: 30px
-    padding: 6px 32px 6px 24px
-    vertical-align: top
-
-    &.nowrap
-      white-space: nowrap
-      width: 1%
-
-  thead
-    &:first-child > tr:first-child
-      td, th
-        border-top: 0
-
-    td, th
-      color: $grey-400
-      font-size: 14px
-      vertical-align: bottom
+@import "./color" @import "./icon" @import "./var" @import "./mixin" html,
+  body margin: 0 padding: 0 width: 100% height: 100% letter-spacing: 1px font-family: "Source Sans Pro",
+  Arial,
+  sans-serif overflow: hidden >div width: inherit height: inherit #app width: 100% height: 100% a text-decoration: none color: $black p,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 margin: 0 input min-height: 32px color: rgba(0, 0, 0, .54) border-color: rgba(0, 0, 0, .12) border-width: 1px border-radius: 2px padding: 0 5px &:focus,
+  &:active border-color: rgba(0, 0, 0, .22) outline: 0 box-shadow: none #main width: 100% height: 100% .container width: 100% height: 100% text-align: justify +y-scroll transition: all .5s cubic-bezier(.55, 0, .1, 1) >* width: 100% .page-enter-active,
+  .page-leave-active transition: opacity .1s .page-enter,
+  .page-leave-to opacity: 0 .slide-left-enter,
+  .slide-right-leave-to opacity: 0 transform: translateX(100%) -webkit-transform: translateX(100%) .slide-left-leave-active,
+  .slide-right-enter opacity: 0 transform: translateX(0) -webkit-transform: translateX(0) .swiper-pagination-bullet background-color: $white !important border: 1px solid $grey opacity: .7 !important .swiper-pagination-bullet-active background-color: $grey-400 !important .table background-color: $white border: 0 box-shadow: 0 -1px 0 rgba(0, 0, 0, 0.06),
+  0 0 3px rgba(0, 0, 0, 0.18),
+  0 1px 3px rgba(0, 0, 0, 0.18) margin-top: 16px margin-bottom: 16px width: 100% tbody &:first-child > tr:first-child td,
+  th border-top: 0 tr:hover background-color: $white td,
+  th border-top: 1px solid $grey-300 font-size: 20px line-height: 30px padding: 6px 32px 6px 24px vertical-align: top &.nowrap white-space: nowrap width: 1% thead &:first-child > tr:first-child td,
+  th border-top: 0 td,
+  th color: $grey-400 font-size: 14px vertical-align: bottom;
 ```
 
-## 到nuxt.config中配置下
+## 到 nuxt.config 中配置下
 
 ```js
 css: ['~static/css/main.css'],
-
 ```
+
 ```js
 css: [
   {
@@ -620,7 +368,7 @@ css: [
 // 设置lang 使用sass进行解析
 ```
 
-### 到oauth.vue中修改,删除about.vue
+### 到 oauth.vue 中修改,删除 about.vue
 
 ```js
 <template lang='pug'>
@@ -677,6 +425,7 @@ export default {
 ```
 
 ### error
+
 ```js
 <template lang='pug'>
   .container
@@ -706,7 +455,6 @@ export default {
 ```
 
 ## 添加家族主页
-
 
 ```js
 <template lang="pug">
@@ -751,7 +499,6 @@ export default {
   }
 </script>
 <style lang="sass" scoped scr ='~/static/sass/house.sass'></style>
-
 ```
 
 位置: store/actions.js
@@ -780,7 +527,7 @@ export default {
 
 位置: page/character/index.vue
 
-复制 house.vue文件并修改
+复制 house.vue 文件并修改
 
 ```js
 <template lang="pug">
@@ -824,11 +571,11 @@ export default {
   }
 </script>
 <style lang='sass' scoped src='static/sass/character.sass' ></style>
-
 ```
 
 * 需要注意的是
-* 
+*
+
 ```js
     computed: {
           ...mapState({
@@ -896,9 +643,9 @@ export default {
 }
 </script>
 <style lang="sass" scoped src='static/sass/nav.sass'></style>
-
 ```
-在RAP中增加页面
+
+在 RAP 中增加页面
 
 ## 增加商品页面 pages/shopping/index.vue
 
@@ -948,7 +695,6 @@ export default {
   }
 </script>
 <style lang='sass' scoped src='static/sass/shopping.sass' ></style>
-
 ```
 
 ### 增加 actions.js
@@ -961,15 +707,14 @@ export default {
     state.products = res.data.data
     return res
   }
-
 ```
+
 ### 添加 /store/service.js
 
 ```js
   fetchProducts() {
     return axios.get(`${apiUrl}/wiki/products`)
   }
-
 ```
 
 ### 添加字段 /store/index.js
@@ -983,12 +728,11 @@ export default {
       currentHouse: {},
       currentCharacter: {}
     },
-
-
 ```
+
 ## 增加购买详情页 pages/dell/index.vue
 
-### 复制shopping页面中的代码
+### 复制 shopping 页面中的代码
 
 ```js
 <template lang="pug">
@@ -1071,10 +815,8 @@ import { identifier } from 'babel-types';
   }
 </script>
 <style lang='sass' scoped src='static/sass/deal.sass' ></style>
-
-
-
 ```
+
 ## 增加 /components/cell.vue
 
 ```js
@@ -1115,10 +857,8 @@ import { identifier } from 'babel-types';
     +font-dpr(33px)
     color: $grey-800
 </style>
-
-
-
 ```
+
 修改 /store/action.js
 修改 /store/index.js
 修改 /store/service.js
@@ -1131,11 +871,10 @@ import { identifier } from 'babel-types';
     state.currentProduct = res.data.data
     return res
   }
-
 ```
+
 ```js
 currentProduct: [],
-
 ```
 
 ```js
@@ -1144,9 +883,6 @@ currentProduct: [],
     return axios.get(`${apiUrl}/wiki/products/${id}`)
   }
 ```
-
-
-
 
 修改 nuxt.config
 添加轮播插件
@@ -1173,8 +909,6 @@ currentProduct: [],
       src: 'plugins/swiper.js', ssr: false
     }
   ],
-
-
 ```
 
 ## 新增 /plugins
@@ -1183,25 +917,19 @@ currentProduct: [],
 swiper.js
 
 ```js
-import Vue from 'vue'
+import Vue from "vue";
 // 判断当前环境,报错后,根据文档修改
 // if (process.BROWSER_BUILD) {
 if (process.browser) {
-  const VueAwesomeSwiper = require('vue-awesome-swiper/dist/ssr')
-  Vue.use(VueAwesomeSwiper)
+  const VueAwesomeSwiper = require("vue-awesome-swiper/dist/ssr");
+  Vue.use(VueAwesomeSwiper);
 }
-
-
 ```
 
-surmon-china/vue-awesome-swiper: 🏆 Swiper component for @vuejs  https://github.com/surmon-china/vue-awesome-swiper
+surmon-china/vue-awesome-swiper: 🏆 Swiper component for @vuejs https://github.com/surmon-china/vue-awesome-swiper
 
-
-添加RAP 数据页
-复制 手办列表
+添加 RAP 数据页复制 手办列表
 /周边手办/手办详情数据
-
-
 
 ## 个人账户
 
@@ -1273,7 +1001,9 @@ surmon-china/vue-awesome-swiper: 🏆 Swiper component for @vuejs  https://githu
 </script>
 <style scoped lang='sass' src='static/sass/user.sass'></style>
 ```
+
 ## store/action.js
+
 ```js
   async fetchUserAndOrders({ state }) {
     const res = await Services.fetchUserAndOrders()
@@ -1282,12 +1012,14 @@ surmon-china/vue-awesome-swiper: 🏆 Swiper component for @vuejs  https://githu
     return res
   }
 ```
+
 ## store/index.js
+
 ```js
  user: null,
 //  orders: [],
-
 ```
+
 ## /store/service.js
 
 ```js
@@ -1295,17 +1027,12 @@ surmon-china/vue-awesome-swiper: 🏆 Swiper component for @vuejs  https://githu
     console.log(`${apiUrl}/api/user`)
     return axios.get(`${apiUrl}/api/user`)
   }
-
 ```
 
-在RAP中添加 账户页面 然后修改删除上面的假数据
+在 RAP 中添加 账户页面 然后修改删除上面的假数据
 
 ```js
-
-
 ```
 
 ```js
-
-
 ```

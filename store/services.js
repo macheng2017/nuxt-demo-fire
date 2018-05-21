@@ -13,6 +13,20 @@ class Services {
   getWechatOAuth(url) {
     return axios.get(`${baseUrl}/wechat-oauth?url=${encodeURIComponent(url)}`)
   }
+  createOrder({
+    productId,
+    name,
+    address,
+    phoneNumber
+  }) {
+    return axios.post(`${baseUrl}/api/wechat-pay`, {
+      productId,
+      name,
+      address,
+      phoneNumber
+    })
+  }
+
   // 获取家族的数据
   fetchHouse(id) {
     console.log(`${baseUrl}/wiki/houses/${id}`)
@@ -32,7 +46,7 @@ class Services {
   // }
   // 获取角色数据
   fetchCharacter(id) {
-   // console.log(`${baseUrl}/wiki/character/${id}`)
+    // console.log(`${baseUrl}/wiki/character/${id}`)
     return axios.get(`${baseUrl}/wiki/characters/${id}`)
     // 测试用假数据
     // return {data: {data: [], success: true}}

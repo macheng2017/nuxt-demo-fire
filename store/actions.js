@@ -4,10 +4,18 @@ import axios from 'axios'
 export default {
   // 服务器同步渲染,如果是同步服务器端渲染页面的话,
   // 会从服务器端将会话session带过来,判断session信息有没有,然后设置用户信息
-  nuxtServerInit({commit}, {req}) {
+  nuxtServerInit({
+    commit
+  }, {
+    req
+  }) {
     if (req.session && req.session.user) {
       // 如果页面是直接渲染出来的看下有没有session
-      const {email, nickname, avatarUrl} = req.session.user
+      const {
+        email,
+        nickname,
+        avatarUrl
+      } = req.session.user
       // 随后实现session功能
       const user = {
         email,
@@ -18,13 +26,20 @@ export default {
     }
   },
   // 登录
-  async login({commit}, {email, password}) {
+  async login({
+    commit
+  }, {
+    email,
+    password
+  }) {
     try {
       let res = await axios.post('/admin/login', {
         email,
         password
       })
-      const {data} = res
+      const {
+        data
+      } = res
       console.log('store/actions.js data ' + JSON.stringify(data.data))
       if (data.success) commit('SET_USER', data.data)
       return data
@@ -35,24 +50,44 @@ export default {
       }
     }
   },
-  async logout({commit}) {
+  async logout({
+    commit
+  }) {
     await axios.post('/admin/logout')
     commit('SET_USER', null)
   },
-  getWechatSignature({ commit }, url) {
+  async createOrder({
+    state
+  }, obj) {
+    const {
+      data
+    } = Services.createOrder(obj)
+    return data
+  },
+  getWechatSignature({
+    commit
+  }, url) {
     return Services.getWechatSignature(url)
   },
-  getUserByOAuth({ commit }, url) {
+  getUserByOAuth({
+    commit
+  }, url) {
     return Services.getUserByOAuth(url)
   },
-  getWechatOAuth({ commit }, url) {
+  getWechatOAuth({
+    commit
+  }, url) {
     return Services.getWechatOAuth(url)
   },
-  setAuthUser({ commit }, authUser) {
+  setAuthUser({
+    commit
+  }, authUser) {
     commit('SET_AUTHUSER', authUser)
   },
 
-  async fetchHouses({ state }) {
+  async fetchHouses({
+    state
+  }) {
     const res = await Services.fetchHouses()
     // console.log(' data = ' + JSON.stringify(res.data.data))
     state.houses = res.data.data
@@ -63,13 +98,17 @@ export default {
   //   state.cities = res.data.data
   //   return res
   // },
-  async fetchCharacters({ state }) {
+  async fetchCharacters({
+    state
+  }) {
     const res = await Services.fetchCharacters()
     // console.log(' data = ' + JSON.stringify(res.data.data))
     state.characters = res.data.data
     return res
   },
-  async showHouse({ state }, _id) {
+  async showHouse({
+    state
+  }, _id) {
     // id相同即为当前页,返回
     if (_id === state.currentHouse._id) return
 
@@ -77,7 +116,9 @@ export default {
     state.currentHouse = res.data.data
     return res
   },
-  async showCharacter({ state }, _id) {
+  async showCharacter({
+    state
+  }, _id) {
     // id相同即为当前页,返回
     if (_id === state.currentCharacter._id) return
     const res = await Services.fetchCharacter(_id)
@@ -85,45 +126,60 @@ export default {
     state.currentCharacter = res.data.data
     return res
   },
-  async fetchProducts({ state }) {
+  async fetchProducts({
+    state
+  }) {
     // id相同即为当前页,返回
     const res = await Services.fetchProducts()
     // console.log(' fetchProducts data = ' + JSON.stringify(res.data))
     state.products = res.data.data
     return res
   },
-  async showProduct({ state }, _id) {
+  async showProduct({
+    state
+  }, _id) {
     if (_id === state.currentProduct._id) return
     const res = await Services.fetchProduct(_id)
     // console.log(' fetchProducts data = ' + JSON.stringify(res.data))
     state.currentProduct = res.data.data
     return res
   },
-  async fetchUserAndOrders({ state }) {
+  async fetchUserAndOrders({
+    state
+  }) {
     const res = await Services.fetchUserAndOrders()
     // console.log(' fetchProducts data = ' + JSON.stringify(res.data))
     state.user = res.data.data
     return res
   },
-  async saveProduct({ state, dispatch }, product) {
+  async saveProduct({
+    state,
+    dispatch
+  }, product) {
     await axios.post('/api/products', product)
-  // 获取商品列表
+    // 获取商品列表
     let res = await dispatch('fetchProducts')
     return res.data.data
   },
   // update
-  async putProduct({ state, dispatch }, product) {
+  async putProduct({
+    state,
+    dispatch
+  }, product) {
     await axios.put('/api/products', product)
-  // 获取商品列表
+    // 获取商品列表
     let res = await dispatch('fetchProducts')
     return res.data.data
   },
   // update
-  async deleteProduct({ state, dispatch }, product) {
+  async deleteProduct({
+    state,
+    dispatch
+  }, product) {
     console.log('product._id ' + product._id)
     await axios.delete(`/api/products/${product._id}`)
     // 删除商品之后,下面更新下商品列表
-  // 获取商品列表
+    // 获取商品列表
     let res = await dispatch('fetchProducts')
     return res.data.data
   }

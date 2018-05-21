@@ -1,180 +1,184 @@
-## 利用修饰器 decoratorr重构koa路由策略
+## 利用修饰器 decoratorr 重构 koa 路由策略
 
-1. 数据
-2. 页面
-3. 将本地数据页面链接起来
+1.  数据
+2.  页面
+3.  将本地数据页面链接起来
 
-通过路由 将api或者页面通过路由中间件,将请求匹配到后端的控制器
+通过路由 将 api 或者页面通过路由中间件,将请求匹配到后端的控制器
 
 ### 通过拆分路由把不同的业务逻辑放在单独的路由页面中去
 
-1. 微信服务
-2. 小程序
-3. 网站后端
-4. 网站前端
-5. groupQL
+1.  微信服务
+2.  小程序
+3.  网站后端
+4.  网站前端
+5.  groupQL
 
 ## 微信有关路由
+
 新建 server/routes 存放不同业务路由的中间件
 
-将原有的 middlewares/router.js 复制到routers/wechat.js
+将原有的 middlewares/router.js 复制到 routers/wechat.js
+
 ```js
-import Router from 'koa-router'
-import config from '../config'
-import wechatMiddle from '../wechat-lib/middleware'
-import reply from '../wechat/reply'
-import { signature, redirect, oauth } from '../controllers/wechat'
+import Router from "koa-router";
+import config from "../config";
+import wechatMiddle from "../wechat-lib/middleware";
+import reply from "../wechat/reply";
+import { signature, redirect, oauth } from "../controllers/wechat";
 
 export const router = app => {
-  const router = new Router()
-  router.all('/wechat-hear', wechatMiddle(config.wechat, reply))
-  router.get('/wechat-signature', signature)
+  const router = new Router();
+  router.all("/wechat-hear", wechatMiddle(config.wechat, reply));
+  router.get("/wechat-signature", signature);
   // 将用户偷偷跳转到二跳地址
-  router.get('/wechat-redirect', redirect)
+  router.get("/wechat-redirect", redirect);
   // 用户跳转过来之后需要通过授权机制获取用户信息
-  router.get('/wechat-oauth', oauth)
-  app.use(router.routes())
-     .use(router.allowedMethods())
-}
+  router.get("/wechat-oauth", oauth);
+  app.use(router.routes()).use(router.allowedMethods());
+};
 ```
 
-改动原来的middlewares/router.js
+改动原来的 middlewares/router.js
 
 ```js
-import Router from '../decorator/router'
-import {resolve} from 'path'
-const r = path => resolve(__dirname, path)
+import Router from "../decorator/router";
+import { resolve } from "path";
+const r = path => resolve(__dirname, path);
 
 export const router = app => {
-  const apiPath = r('../routers')
-  const router = new Router(app, apiPath)
-  router.init()
-}
+  const apiPath = r("../routers");
+  const router = new Router(app, apiPath);
+  router.init();
+};
 ```
-
 
 新建../decorator/router.js
 
 实现将页面装入路由当中
 
 ```js
-import Router from 'koa-router'
-import { resolve } from 'path'
-import glob from 'glob'
-import _ from 'lodash'
-export let routersMap = new Map()
+import Router from "koa-router";
+import { resolve } from "path";
+import glob from "glob";
+import _ from "lodash";
+export let routersMap = new Map();
 
-export const symbolPrefix = Symbol('prefix')
+export const symbolPrefix = Symbol("prefix");
 // 如果是数组,否则包装成数组
-export const isAarry = v => _.isArray(v) ? v : [v]
+export const isAarry = v => (_.isArray(v) ? v : [v]);
 
-export const normalizePath = path => path.startsWith('/') ? path : `/${path}`
+export const normalizePath = path => (path.startsWith("/") ? path : `/${path}`);
 
 export default class Route {
   constructor(app, apiPath) {
-    this.app = app
-    this.router = new Router()
-    this.apiPath = apiPath
+    this.app = app;
+    this.router = new Router();
+    this.apiPath = apiPath;
   }
   init() {
     // 1.遍历路由中所有文件
-    glob.sync(resolve(this.apiPath, './*.js')).forEach(require)
+    glob.sync(resolve(this.apiPath, "./*.js")).forEach(require);
     // 2. 对其内部进行路径判断路径解析,让每个路径对上一个controller
     // 分别将其加载进来
     //
     for (let [conf, controller] of routersMap) {
       // 把每一个路由文件中的controller取出来跟他们的路由进行一一匹配
       // 来判断下是否是数组
-      const controllers = isAarry(controller)
+      const controllers = isAarry(controller);
       // 改动下微信的路由
-      let prefixPath = conf.target[symbolPrefix]
+      let prefixPath = conf.target[symbolPrefix];
       // symbolPrefix 是什么意思?
       // 在JavaScript 数据类型 symbol可以看做是第七种类型,不同于以往的数据类型
       // 通过symbol创建的值与任何其他值都不相等,也就是每个symbol都是独一无二的
       // ,创建之后不能修改
       // 拿到正常路径
-      if (prefixPath) prefixPath = normalizePath(prefixPath)
-      const routerPath = prefixPath + conf.path
+      if (prefixPath) prefixPath = normalizePath(prefixPath);
+      const routerPath = prefixPath + conf.path;
       // 对里面的每个方法施加到他们自身,让其可以生效
-      this.router[conf.method](routerPath, ...controllers)
+      this.router[conf.method](routerPath, ...controllers);
     }
-    this.app.use(this.router.routes())
-    this.app.use(this.router.allowedMethods())
+    this.app.use(this.router.routes());
+    this.app.use(this.router.allowedMethods());
   }
 }
 export const router = conf => (target, key, desc) => {
-  conf.path = normalizePath(conf.path)
-  routersMap.set({
-    target: target,
-    ...conf
-  }, target[key])
-}
+  conf.path = normalizePath(conf.path);
+  routersMap.set(
+    {
+      target: target,
+      ...conf
+    },
+    target[key]
+  );
+};
 // symbolPrefix 是唯一的值, 这样每一个controller都是唯一的值
-export const controller = path => target => target.prototype[symbolPrefix] = path
+export const controller = path => target =>
+  (target.prototype[symbolPrefix] = path);
 // 简单的配置get请求的router
-export const get = path => router({
-  method: 'get',
-  path: path
-})
-export const post = path => router({
-  method: 'post',
-  path: path
-})
+export const get = path =>
+  router({
+    method: "get",
+    path: path
+  });
+export const post = path =>
+  router({
+    method: "post",
+    path: path
+  });
 
-export const put = path => router({
-  method: 'put',
-  path: path
-})
-export const del = path => router({
-  method: 'del',
-  path: path
-})
-
-
+export const put = path =>
+  router({
+    method: "put",
+    path: path
+  });
+export const del = path =>
+  router({
+    method: "del",
+    path: path
+  });
 ```
 
-初步来看glob是一个多了匹配功能的require,还没详细看
+初步来看 glob 是一个多了匹配功能的 require,还没详细看
 https://github.com/isaacs/node-glob
 
-
-
 ### 改动下微信的路由
-```js
 
-import Router from 'koa-router'
-import { controller, get, post } from '../decorator/router'
-import config from '../config'
-import wechatMiddle from '../wechat-lib/middleware'
-import reply from '../wechat/reply'
-import { signature, redirect, oauth } from '../controllers/wechat'
+```js
+import Router from "koa-router";
+import { controller, get, post } from "../decorator/router";
+import config from "../config";
+import wechatMiddle from "../wechat-lib/middleware";
+import reply from "../wechat/reply";
+import { signature, redirect, oauth } from "../controllers/wechat";
 // 通过@ decorator 然后传入一个路径,
 // 这个路径可以看做一个命名空间,请求地址匹配到这个路径,都应该在这个页面中进行控制的
 // 比如可以用@controller('/wechat')
-@controller('')
+@controller("")
 export class WechatCotroller {
-  @get('/wechat-hear')
+  @get("/wechat-hear")
   async wechatHear(ctx, next) {
-    const middle = wechatMiddle(config.wechat, reply)
-    const body = await middle (ctx, next)
-    ctx.body = body
+    const middle = wechatMiddle(config.wechat, reply);
+    const body = await middle(ctx, next);
+    ctx.body = body;
   }
-  @post('/wechat-hear')
+  @post("/wechat-hear")
   async wechatPostHear(ctx, next) {
-    const middle = wechatMiddle(config.wechat, reply)
-    const body = await middle (ctx, next)
-    ctx.body = body
+    const middle = wechatMiddle(config.wechat, reply);
+    const body = await middle(ctx, next);
+    ctx.body = body;
   }
-  @get('/wechat-signature')
+  @get("/wechat-signature")
   async wechatSignature(ctx, next) {
-    await signature(ctx, next)
+    await signature(ctx, next);
   }
-  @get('/wechat-redirect')
+  @get("/wechat-redirect")
   async wechatRedirect(ctx, next) {
-    await redirect(ctx, next)
+    await redirect(ctx, next);
   }
-  @get('/wechat-oauth')
+  @get("/wechat-oauth")
   async wechatOauth(ctx, next) {
-    await oauth(ctx, next)
+    await oauth(ctx, next);
   }
 }
 
@@ -185,9 +189,6 @@ export class WechatCotroller {
 // 就知道它里面包含哪些业务对应过来这个路由
 // 4. get/post 请求在这里可以做更加精细的控制,而不是像之前的router.get
 //  router.post 将整个数据流程整个丢给了下个函数
-
-
-
 
 // export const router = app => {
 //   const router = new Router()
@@ -200,48 +201,39 @@ export class WechatCotroller {
 //   app.use(router.routes())
 //      .use(router.allowedMethods())
 // }
-
 ```
 
-修饰器 是es7的语法 decorator 还不能原生的支持,还是需要babel的编译
-需要在start.js 引入插件plugin
-
+修饰器 是 es7 的语法 decorator 还不能原生的支持,还是需要 babel 的编译需要在 start.js 引入插件 plugin
 
 ```js
-const { resolve } = require('path')
-const r = path => resolve(__dirname, 'path')
-require('babel-core/register')({
-  'presets': [
-    'stage-3',
-    ['latest-node',
-     { 'target': 'current' }
-    ]
-  ],
+const { resolve } = require("path");
+const r = path => resolve(__dirname, "path");
+require("babel-core/register")({
+  presets: ["stage-3", ["latest-node", { target: "current" }]],
   plugins: [
-    'transform-decorators-legacy',
+    "transform-decorators-legacy",
     [
-      'module-alias', [
+      "module-alias",
+      [
         {
-          src: r('./server'), 'expose': '~',
-          src: r('./server/database'), 'expose': 'database'
+          src: r("./server"),
+          expose: "~",
+          src: r("./server/database"),
+          expose: "database"
         }
       ]
     ]
   ]
-})
+});
 // 通过babel的编译才能放心使用es6 的语法
-require('babel-polyfill')
-require('./server')
+require("babel-polyfill");
+require("./server");
 // require('./server/crawler/imdb')
 // require('./server/crawler/api')
 // require('./server/crawler/check')
 // require('./server/crawler/wiki')
 // require('./test/testRamda')
-
-
-
 ```
-
 
 yarn add babel-plugin-module-alias -D
 yarn add babel-plugin-transform-decorators-legacy -D
@@ -256,7 +248,7 @@ http://localhost:3000/wechat-signature?url=abcd
 
 如果测试通过说明,路由分层已经可以了
 
-## 开发家族数据API
+## 开发家族数据 API
 
 开发前后端接口
 
@@ -264,70 +256,64 @@ http://localhost:3000/wechat-signature?url=abcd
 
 copy wechat.js code
 
-
 ```js
-import { controller, get, post } from '../decorator/router'
-import mongoose from 'mongoose'
+import { controller, get, post } from "../decorator/router";
+import mongoose from "mongoose";
 // 通过@ decorator 然后传入一个路径,
 // 这个路径可以看做一个命名空间,请求地址匹配到这个路径,都应该在这个页面中进行控制的
 // 比如可以用@controller('/wechat')
 
-const WikiHouse = mongoose.model('WikiHouse')
-@controller('/wiki')
+const WikiHouse = mongoose.model("WikiHouse");
+@controller("/wiki")
 export class WechatCotroller {
   // 获取家族数据
-  @get('/houses')
+  @get("/houses")
   async getHouses(ctx, next) {
     // 直接可以进行数据库的操作
-    const houses = await WikiHouse
-    .find({})
-    .populate({
-      path: 'swornMembers.character',
-      select: '_id name cname profile'
-    }).exec()
+    const houses = await WikiHouse.find({})
+      .populate({
+        path: "swornMembers.character",
+        select: "_id name cname profile"
+      })
+      .exec();
     ctx.body = {
       data: houses,
       success: true
-    }
+    };
   }
   // 获取单个家族详细数据
-  @get('/houses/:_id')
+  @get("/houses/:_id")
   async getHouse(ctx, next) {
-    const { params } = ctx
-    const { _id } = params
-    if (!_id) return (ctx.body = {success: false, err: 'id is required'})
-    const house = await WikiHouse
-    .findOne({_id: _id})
-    .populate({
-      path: 'swornMembers.character',
-      select: '_id name cname nmid'
-    }).exec()
+    const { params } = ctx;
+    const { _id } = params;
+    if (!_id) return (ctx.body = { success: false, err: "id is required" });
+    const house = await WikiHouse.findOne({ _id: _id })
+      .populate({
+        path: "swornMembers.character",
+        select: "_id name cname nmid"
+      })
+      .exec();
     ctx.body = {
       data: house,
       success: true
-    }
+    };
   }
 }
-
-
 ```
 
-### 测试 替换RAP api
+### 测试 替换 RAP api
 
 位置 server/store/services.js
 
-
 更改 apiUrl 为 baseUrl
-
 
 ### 手动上传家族图片到七牛云
 
 测试域名
 minipro.spzwl.com
 
-
-
 ### 位置 store/index.js
+
 增加
 
 ```js
@@ -351,7 +337,6 @@ minipro.spzwl.com
       // 映射到mapState
       ...mapState([
         'imageCDN',
-
 ```
 
 ### index.sass
@@ -364,10 +349,9 @@ minipro.spzwl.com
 
       img
         width: 100%
-
 ```
 
-## 添加人物数据的api
+## 添加人物数据的 api
 
 ### 位置 routers.js
 
@@ -405,25 +389,28 @@ const WikiCharacter = mongoose.model('WikiCharacter')
   }
 ```
 
-## 将cities 写成固定值
+## 将 cities 写成固定值
 
 ### path store/services.js
+
 ```js
-  // // 获取城市数据
-  // fetchCities() {
-  //   // console.log(`${baseUrl}/wiki/cities`)
-  //   // return axios.get(`${baseUrl}/wiki/cities`)
-  //   // 测试用假数据
-  //   return {data: {data: [], success: true}}
-  // }
+// // 获取城市数据
+// fetchCities() {
+//   // console.log(`${baseUrl}/wiki/cities`)
+//   // return axios.get(`${baseUrl}/wiki/cities`)
+//   // 测试用假数据
+//   return {data: {data: [], success: true}}
+// }
 ```
+
 ### path store/actions.js
+
 ```js
-  // async fetchCities({ state }) {
-  //   const res = await Services.fetchCities()
-  //   state.cities = res.data.data
-  //   return res
-  // },
+// async fetchCities({ state }) {
+//   const res = await Services.fetchCities()
+//   state.cities = res.data.data
+//   return res
+// },
 ```
 
 ### path index.vue
@@ -432,44 +419,57 @@ add code
 
 ```js
 cities: [
-        {
-          title: '北境',
-          body: '北境是颈泽以北的地带，临冬城的史塔克家族作为北境之王和伊耿征服后的北境守护已统治了数千年之久。'
-        },
-        {
-          title: '铁群岛',
-          body: '铁群岛是位于大陆西海岸铁民湾中的一组群岛，它们分别是派克岛，大威克岛，老威克岛，哈尔洛岛，盐崖岛，黑潮岛和奥克蒙岛。'
-        },
-        {
-          title: '河间地',
-          body: '河间地是位于三叉戟河流域的肥沃地带。他们的统治者是奔流城的徒利家族。在远古的河流王灭绝后，河间地进入一个动荡的历史时期，其他的南方王国纷纷入侵，河间地多次易主。'
-        },
-        { title: '艾林谷',
-          body: '谷地是一处几乎被明月山脉完全环绕的区域，他们的统治者是艾林家族，是最古老的安达尔人贵族之一，在伊耿征服之前是山岭和谷地之王。'
-        },
-        { title: '西境',
-          body: '西境位于河间地以西和河湾以北，由凯岩城的兰尼斯特家族统治，他们是从前的岩地之王。'
-        },
-        { title: '河湾',
-          body: '河湾是由高庭的提利尔家族所统治的肥沃土地。提利尔家族原本是园丁家族的总管，园丁家族是伊耿征服之前的河湾王。'
-        },
-        {
-          title: '风暴之地',
-          body: '风暴之地位于君临和多恩海之间，在东边则是被破船湾和多恩海与南方分隔开来。'
-        },
-        {
-          title: '多恩',
-          body: '多恩是维斯特洛最南部的土地，从多恩边境地的高山一直延伸到大陆的南海岸。这里是维斯特洛最炎热的国度，拥有大陆上仅有的沙漠。'
-        },
-        {
-          title: '王领',
-          body: '王领是铁王座之王的直属领地。这块区域包括君临以及周围地带的罗斯比城和暮谷城。'
-        },
-        {
-          title: '龙石岛',
-          body: '龙石岛是位于狭海中的岛屿要塞，同时管理着狭海中的一些其他岛屿如潮头岛和蟹岛，以及位于大陆上的尖角要塞。'
-        }
-      ]
+  {
+    title: "北境",
+    body:
+      "北境是颈泽以北的地带，临冬城的史塔克家族作为北境之王和伊耿征服后的北境守护已统治了数千年之久。"
+  },
+  {
+    title: "铁群岛",
+    body:
+      "铁群岛是位于大陆西海岸铁民湾中的一组群岛，它们分别是派克岛，大威克岛，老威克岛，哈尔洛岛，盐崖岛，黑潮岛和奥克蒙岛。"
+  },
+  {
+    title: "河间地",
+    body:
+      "河间地是位于三叉戟河流域的肥沃地带。他们的统治者是奔流城的徒利家族。在远古的河流王灭绝后，河间地进入一个动荡的历史时期，其他的南方王国纷纷入侵，河间地多次易主。"
+  },
+  {
+    title: "艾林谷",
+    body:
+      "谷地是一处几乎被明月山脉完全环绕的区域，他们的统治者是艾林家族，是最古老的安达尔人贵族之一，在伊耿征服之前是山岭和谷地之王。"
+  },
+  {
+    title: "西境",
+    body:
+      "西境位于河间地以西和河湾以北，由凯岩城的兰尼斯特家族统治，他们是从前的岩地之王。"
+  },
+  {
+    title: "河湾",
+    body:
+      "河湾是由高庭的提利尔家族所统治的肥沃土地。提利尔家族原本是园丁家族的总管，园丁家族是伊耿征服之前的河湾王。"
+  },
+  {
+    title: "风暴之地",
+    body:
+      "风暴之地位于君临和多恩海之间，在东边则是被破船湾和多恩海与南方分隔开来。"
+  },
+  {
+    title: "多恩",
+    body:
+      "多恩是维斯特洛最南部的土地，从多恩边境地的高山一直延伸到大陆的南海岸。这里是维斯特洛最炎热的国度，拥有大陆上仅有的沙漠。"
+  },
+  {
+    title: "王领",
+    body:
+      "王领是铁王座之王的直属领地。这块区域包括君临以及周围地带的罗斯比城和暮谷城。"
+  },
+  {
+    title: "龙石岛",
+    body:
+      "龙石岛是位于狭海中的岛屿要塞，同时管理着狭海中的一些其他岛屿如潮头岛和蟹岛，以及位于大陆上的尖角要塞。"
+  }
+];
 ```
 
 ### 指定图片剪裁宽度
@@ -480,15 +480,15 @@ cities: [
       .items(v-for='(item, index) in characters' :key='index' @click='showCharacter(item)')
         img(:src='imageCDN + item.profile + "?imageView2/1/w/280/h/400/q/75|imageslim"')
 ```
+
 * 在七牛中配置好参数
 
 ```js
-
 ```
 
 ```js
-
 ```
+
 ## 重构代码
 
 ### 位置: server/index.js
@@ -508,14 +508,14 @@ cities: [
 
 // 这样就可以在其他文件中通过 import * as api from '../api'
 // 直接通过api来调用所暴露出来的方法了
-import * as wechat from './wechat'
+import * as wechat from "./wechat";
 
 export default {
   wechat: wechat
-}
-
+};
 ```
-### 位置  controllers/wechat.js
+
+### 位置 controllers/wechat.js
 
 ```js
 const params = await api.wechat.getSignatureAsync(url)
@@ -523,143 +523,138 @@ const params = await api.wechat.getSignatureAsync(url)
 const url = await api.wechat.getAuthorizeURL(scope, target, params)
 
 const user = await api.wechat.getUserByCode(code)
-
 ```
-### copy code from  path routers/wiki.js
+
+### copy code from path routers/wiki.js
 
 ```js
-import mongoose from 'mongoose'
+import mongoose from "mongoose";
 // 通过@ decorator 然后传入一个路径,
 // 这个路径可以看做一个命名空间,请求地址匹配到这个路径,都应该在这个页面中进行控制的
 // 比如可以用@controller('/wechat')
 
-const WikiHouse = mongoose.model('WikiHouse')
-const WikiCharacter = mongoose.model('WikiCharacter')
-  // 获取家族数据
+const WikiHouse = mongoose.model("WikiHouse");
+const WikiCharacter = mongoose.model("WikiCharacter");
+// 获取家族数据
 export async function getHouses() {
   // 直接可以进行数据库的操作
-  const data = await WikiHouse
-  .find({})
-  .populate({
-    path: 'swornMembers.character',
-    select: '_id name cname profile'
-  }).exec()
-  return data
+  const data = await WikiHouse.find({})
+    .populate({
+      path: "swornMembers.character",
+      select: "_id name cname profile"
+    })
+    .exec();
+  return data;
 }
 
 // 获取单个家族详细数据
 export async function getHouse(_id) {
-  const data = await WikiHouse
-  .findOne({_id: _id})
-  .populate({
-    path: 'swornMembers.character',
-    select: '_id name cname nmid'
-  }).exec()
-  return data
+  const data = await WikiHouse.findOne({ _id: _id })
+    .populate({
+      path: "swornMembers.character",
+      select: "_id name cname nmid"
+    })
+    .exec();
+  return data;
 }
 // 获取人物数据
 export async function getCharacters(limit = 20) {
-  const data = await WikiCharacter
-  .find({})
-  .limit(Number(limit))
-  .exec()
-  return data
+  const data = await WikiCharacter.find({})
+    .limit(Number(limit))
+    .exec();
+  return data;
 }
 // 获取单个人物详细数据
 export async function getCharacter(_id) {
-  const data = await WikiCharacter
-  .findOne({_id: _id})
-  .exec()
-  return data
+  const data = await WikiCharacter.findOne({ _id: _id }).exec();
+  return data;
 }
-
 ```
+
 ### index.js import wiki.js
 
 ```js
-import * as wechat from './wechat'
-import * as wiki from './wiki'
+import * as wechat from "./wechat";
+import * as wiki from "./wiki";
 
 export default {
   wechat: wechat,
   wiki: wiki
-}
-
-
+};
 ```
-### path /routers/wiki.js 
+
+### path /routers/wiki.js
+
 ```js
-import { controller, get, post } from '../decorator/router'
-import api from '../api'
+import { controller, get, post } from "../decorator/router";
+import api from "../api";
 // 通过@ decorator 然后传入一个路径,
 // 这个路径可以看做一个命名空间,请求地址匹配到这个路径,都应该在这个页面中进行控制的
 // 比如可以用@controller('/wechat')
 
-@controller('/wiki')
+@controller("/wiki")
 export class WechatCotroller {
   // 获取家族数据
-  @get('/houses')
+  @get("/houses")
   async getHouses(ctx, next) {
-    const data = await api.wiki.getHouses()
+    const data = await api.wiki.getHouses();
     ctx.body = {
       data: data,
       success: true
-    }
+    };
   }
   // 获取单个家族详细数据
-  @get('/houses/:_id')
+  @get("/houses/:_id")
   async getHouse(ctx, next) {
-    const { params } = ctx
-    const { _id } = params
-    if (!_id) return (ctx.body = {success: false, err: 'id is required'})
-    const data = await api.wiki.getHouse(_id)
+    const { params } = ctx;
+    const { _id } = params;
+    if (!_id) return (ctx.body = { success: false, err: "id is required" });
+    const data = await api.wiki.getHouse(_id);
     ctx.body = {
       data: data,
       success: true
-    }
+    };
   }
   // 获取人物数据
-  @get('/characters')
+  @get("/characters")
   async getCharacters(ctx, next) {
-    let { limit = 20 } = ctx.query
-    const data = await api.wiki.getCharacters(limit)
+    let { limit = 20 } = ctx.query;
+    const data = await api.wiki.getCharacters(limit);
     ctx.body = {
       data: data,
       success: true
-    }
+    };
   }
   // 获取单个人物详细数据
-  @get('/characters/:_id')
+  @get("/characters/:_id")
   async getCharacter(ctx, next) {
-    const { params } = ctx
-    const { _id } = params
-    if (!_id) return (ctx.body = {success: false, err: 'id is required'})
-    const data = await api.wiki.getCharacter(_id)
+    const { params } = ctx;
+    const { _id } = params;
+    if (!_id) return (ctx.body = { success: false, err: "id is required" });
+    const data = await api.wiki.getCharacter(_id);
     ctx.body = {
       data: data,
       success: true
-    }
+    };
   }
 }
-
-
 ```
+
 ### 完善家族封面图片
 
 添加字段
-```js
 
+```js
  .populate({
     path: 'swornMembers.character',
     select: '_id name profile cname nmid'
   }).exec()
-
 ```
 
-### 突然发现一个问题house.swornMember 下面没有character的数据
+### 突然发现一个问题 house.swornMember 下面没有 character 的数据
 
-通过查看console vue 查看数据类型
-得到item.character._id 而不是在item._id
+通过查看 console vue 查看数据类型得到 item.character.\_id 而不是在 item.\_id
+
 ```js
    methods: {
       showCharacter(item) {
@@ -670,7 +665,6 @@ export class WechatCotroller {
           }
         })
       }
-
 ```
 
 ## 实现商城页面的后台路由功能
@@ -678,93 +672,84 @@ export class WechatCotroller {
 add path server/database/schema/product.js
 
 ```js
-const mongoose = require('mongoose')
-const Schema = mongoose.Schema
-const Mixed = Schema.Types.Mixed
+const mongoose = require("mongoose");
+const Schema = mongoose.Schema;
+const Mixed = Schema.Types.Mixed;
 
 const ProductSchema = new Schema({
   price: String,
   title: String,
   intro: String,
-  images: [
-    String
-  ],
+  images: [String],
   parameters: [
     {
       key: String,
       value: String
     }
   ]
-})
-
+});
 ```
 
 ### 添加路由
+
 add path routers/product.js
 copy code from wiki.js
 
 ```js
-import xss from 'xss'
-
-
+import xss from "xss";
 ```
+
 * xss filter malicious string
-
-
 
 添加 处理方法
 
 path server/api/product.js
 
 cp code of wiki.js
-```js
 
-import mongoose from 'mongoose'
+```js
+import mongoose from "mongoose";
 // 通过@ decorator 然后传入一个路径,
 // 这个路径可以看做一个命名空间,请求地址匹配到这个路径,都应该在这个页面中进行控制的
 // 比如可以用@controller('/wechat')
 
-const Product = mongoose.model('product')
+const Product = mongoose.model("product");
 
 // 获取人物数据
 export async function getProducts(limit = 50) {
-  const data = await Product
-  .find({})
-  .limit(Number(limit))
-  .exec()
-  return data
+  const data = await Product.find({})
+    .limit(Number(limit))
+    .exec();
+  return data;
 }
 // 获取单个人物详细数据
 export async function getProduct(_id) {
-  const data = await Product
-  .findOne({_id: _id})
-  .exec()
-  return data
+  const data = await Product.findOne({ _id: _id }).exec();
+  return data;
 }
 export async function save(product) {
-  product = new Product(product)
-  product = await product.save()
-  return product
+  product = new Product(product);
+  product = await product.save();
+  return product;
 }
 export async function update(product) {
-  product = await product.save()
-  return product
+  product = await product.save();
+  return product;
 }
 export async function del(product) {
-  await product.remove()
-  return true
+  await product.remove();
+  return true;
 }
-
 ```
 
 ## 宝贝上传后台
 
 path: pages/admin/product.vue
 
-1. 上传
-2. 展示
-3. 上传图片
-4. 编辑
+1.  上传
+2.  展示
+3.  上传图片
+4.  编辑
 
 ```js
 <template lang="pug">
@@ -918,11 +903,9 @@ export default {
 </script>
 
 <style lang="sass" scoped src='static/sass/admin.sass'></style>
-
 ```
 
-
-API: layout 属性 - Nuxt.js  https://zh.nuxtjs.org/api/pages-layout
+API: layout 属性 - Nuxt.js https://zh.nuxtjs.org/api/pages-layout
 
 ### add path layouts/admin.vue
 
@@ -955,7 +938,7 @@ header
 </style>
 ```
 
-### path  header.vue
+### path header.vue
 
 ```js
 <template lang='pug'>
@@ -983,7 +966,6 @@ header
 
 
 </style>
-
 ```
 
 ### add path layouts/aside.vue 边栏
@@ -1028,8 +1010,7 @@ aside
 </style>
 ```
 
-
-### add path layouts/snackbar.vue 
+### add path layouts/snackbar.vue
 
 ```js
 <template lang='pug'>
@@ -1061,8 +1042,6 @@ transition(name=swing)
   }
 </script>
 <style lang='sass' src='../static/sass/snackbar.sass' ></style>
-
-
 ```
 
 ## 增加后台操作的数据接口
@@ -1084,13 +1063,14 @@ async putProduct({ state, dispatch }, product) {
   let res = await dispatch('fetchProducts')
   return res.data.data
 },
-
 ```
 
 修改 routers/product.js
+
 ```js
 @controller('/api')
 ```
+
 store/service.js
 
 ```js
@@ -1104,56 +1084,50 @@ store/service.js
   }
 ```
 
-## 增加中间件,存储宝贝的是put 请求的body需要解析
-
+## 增加中间件,存储宝贝的是 put 请求的 body 需要解析
 
 ### path server/index.js
-```js
 
-const MIDDLEWARES = ['database', 'common', 'router']
+```js
+const MIDDLEWARES = ["database", "common", "router"];
 ```
 
 ### path server/middlewares/common.js
 
 ```js
-import koaBody from 'koa-bodyparser'
+import koaBody from "koa-bodyparser";
 // 解析body的中间件
 export const addBody = app => {
-  app.use(koaBody())
-}
-
-
+  app.use(koaBody());
+};
 ```
-
 
 yarn add koa-bodyparser
 
+### 需要在 api 中将与数据交互的方法暴露出去
 
-### 需要在api中将与数据交互的方法暴露出去
 ```js
-
-import * as wechat from './wechat'
-import * as wiki from './wiki'
-import * as product from './product'
+import * as wechat from "./wechat";
+import * as wiki from "./wiki";
+import * as product from "./product";
 
 export default {
   wechat: wechat,
   wiki: wiki,
   product: product
-}
+};
 ```
 
 ## 补全上一个功能:为后台添加上传图片功能,图片上传到七牛
 
-1. 之前上传图片是爬取的图片地址,从服务器端上传
-2. 这次是从客户端上传,多了个获取七牛token的步骤
-
+1.  之前上传图片是爬取的图片地址,从服务器端上传
+2.  这次是从客户端上传,多了个获取七牛 token 的步骤
 
 path pages/admin/product.vue
 
-客户端写了获取token的请求
+客户端写了获取 token 的请求
 
-到服务器端实现生成token的 方法
+到服务器端实现生成 token 的 方法
 
 path server/routers/product.js
 

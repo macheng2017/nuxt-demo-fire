@@ -2,99 +2,98 @@
 
 把微信中间件中的工具模块完善一下
 
-在util.js中增加一个formatMessage 方法将xml 转换成object
+在 util.js 中增加一个 formatMessage 方法将 xml 转换成 object
 
 ```js
-function formatMessage (result) {
+function formatMessage(result) {
   // 先声明一个空对象
-  let message = {}
-  if (typeof result === 'object') {
+  let message = {};
+  if (typeof result === "object") {
     // 拿到keys
-    const keys = Object.keys(result)
+    const keys = Object.keys(result);
     // 拿到value
     for (let i = 0; i < keys.length; i++) {
-      let item = result[keys[i]]
-      let key = keys[i]
-    // 如果不是数组则,跳过当前循环继续下一次
-      if(!(item instanceof Array )|| item.length === 0) {
-        continue
+      let item = result[keys[i]];
+      let key = keys[i];
+      // 如果不是数组则,跳过当前循环继续下一次
+      if (!(item instanceof Array) || item.length === 0) {
+        continue;
       }
 
       if (item.length === 1) {
-        let val = item[0]
+        let val = item[0];
 
-        if(typeof val === 'object') {
-          message[key] = formatMessage(val)
+        if (typeof val === "object") {
+          message[key] = formatMessage(val);
         } else {
           //不是对象,赋值并判断下是否是空值
-          message[key] = (val || '').trim()
+          message[key] = (val || "").trim();
         }
       } else {
-        message[key] = []
+        message[key] = [];
 
-        for (let j = 0; i < item.length; j++){
-          message[key].push(formatMessage(item[j]))
+        for (let j = 0; i < item.length; j++) {
+          message[key].push(formatMessage(item[j]));
         }
       }
     }
   }
-  return message
+  return message;
 }
-export {
-  formatMessage,
-  parseXML
-}
+export { formatMessage, parseXML };
 ```
-*  const message = util.formatMessage(content.xml)
+
+* const message = util.formatMessage(content.xml)
 * // const message = JSON.parse(JSON.stringify(content)).xml
-* 使用上面第二种方式可以转换xml2json
+* 使用上面第二种方式可以转换 xml2json
 
 [Object.keys() - JavaScript | MDN](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Object/keys)
 
 使用插件即可
 
-Leonidas-from-XIV/node-xml2js: XML to JavaScript object converter.  https://github.com/Leonidas-from-XIV/node-xml2js
-
+Leonidas-from-XIV/node-xml2js: XML to JavaScript object converter. https://github.com/Leonidas-from-XIV/node-xml2js
 
 ```js
-import template from './tpl'
+import template from "./tpl";
 // content 回复内容
 // message 解析后的消息
-function tpl (content, message) {
-  let type = 'text'
+function tpl(content, message) {
+  let type = "text";
   // 判断是否是一个数组
   if (Array.isArray(content)) {
     // 将类型变更为news
-    type = 'news'
+    type = "news";
   }
   // 如果content 是空值,设置默认的回复内容
-  if(!content) {
-    content = 'Empty News'
+  if (!content) {
+    content = "Empty News";
   }
   // 如果type 不是text 设置为text
-  if(content && content.type) {
-    type = content.type
+  if (content && content.type) {
+    type = content.type;
   }
   // 构建消息对象
-  info = Object.assign({}, {
-    content: content,
-    createTime: new Date().getTime(),
-    msgType: type,
-    toUserName: message.FromUserName,
-    fromUserName: message.ToUserName
-  })
-  return template(info)
+  info = Object.assign(
+    {},
+    {
+      content: content,
+      createTime: new Date().getTime(),
+      msgType: type,
+      toUserName: message.FromUserName,
+      fromUserName: message.ToUserName
+    }
+  );
+  return template(info);
 }
-
 ```
 
-## 新建tpl.js
+## 新建 tpl.js
 
 ### tpl.js 用于封装存放消息回复模板
 
 ```js
-import ejs from 'ejs'
-      const tpl = `<xml>
+import ejs from "ejs";
+const tpl = `<xml>
           <ToUserName>
           <![CDATA[<%= toUserName %>]]>
           </ToUserName>
@@ -172,31 +171,31 @@ import ejs from 'ejs'
            </Articles>
       <% } %>
 
-      </xml>`
+      </xml>`;
 
 // 不同模板切换通过type来判断
 
 // 模板声明好了之后需要将模板编译一下
 
-const compiled = ejs.compile(tpl)
+const compiled = ejs.compile(tpl);
 
-export default compiled
+export default compiled;
 ```
-## part4.2 接收微信普通消息
 
+## part4.2 接收微信普通消息
 
 文件位置: /server/wechat/reply.js
 
 ```js
-const tip = '欢迎来到河间地!\n\n<a href="http://www.baidu.com">传送</a>'
+const tip = '欢迎来到河间地!\n\n<a href="http://www.baidu.com">传送</a>';
 export default async (ctx, next) => {
-  const message = ctx.weixin
-  console.log(message)
-  ctx.body = tip
-}
+  const message = ctx.weixin;
+  console.log(message);
+  ctx.body = tip;
+};
 ```
 
-微信公众平台  https://mp.weixin.qq.com/wiki?t=resource/res_main&id=mp1421140453
+微信公众平台 https://mp.weixin.qq.com/wiki?t=resource/res_main&id=mp1421140453
 
 ```js
 // 为什么要用fn.apply()?
@@ -247,10 +246,7 @@ export default async (ctx, next) => {
     }]
   }
 }
-
-
 ```
-
 
 ## part4.3 素材管理
 
@@ -258,15 +254,13 @@ export default async (ctx, next) => {
 
 位置: /server/wechat-lib/index.js
 
-
 将官网给出的临时素材地址拿过来
 
 ```js
-const base = 'https://api.weixin.qq.com/cgi-bin/'
+const base = "https://api.weixin.qq.com/cgi-bin/";
 const api = {
-  accessToken: base + 'token?grant_type=client_credential'
-}
-
+  accessToken: base + "token?grant_type=client_credential"
+};
 ```
 
 ```js
@@ -274,43 +268,41 @@ const api = {
 // 新增临时素材
 //https://api.weixin.qq.com/cgi-bin/media/upload?access_token=ACCESS_TOKEN&type=TYPE
 //https://api.weixin.qq.com/cgi-bin/media/get?access_token=ACCESS_TOKEN&media_id=MEDIA_ID
-const base = 'https://api.weixin.qq.com/cgi-bin/'
+const base = "https://api.weixin.qq.com/cgi-bin/";
 const api = {
-  accessToken: base + 'token?grant_type=client_credential',
+  accessToken: base + "token?grant_type=client_credential",
   temporary: {
-    upload: base + 'media/upload?',
-    fetch: base + 'media/get?'
+    upload: base + "media/upload?",
+    fetch: base + "media/get?"
   },
   // 新增其他类型永久素材
   // https://api.weixin.qq.com/cgi-bin/material/add_material?access_token=ACCESS_TOKEN&type=TYPE
   // https://api.weixin.qq.com/cgi-bin/material/get_material?access_token=ACCESS_TOKEN
   permanent: {
-    upload: base + 'material/add_material?',
+    upload: base + "material/add_material?",
     // 图文消息内的图片
-    uploadNews: base + 'material/add_news?',
-    uploadNewsPic: base + 'media/uploadimg?',
-    fetch: base + 'material/get_material?',
-    del: base + 'material/del_material?',
-    update: base + 'material/update_news',
-    count: base + 'material/get_materialcount?',
-    batch: base+ 'material/batchget_material?'
-   }
-}
-
+    uploadNews: base + "material/add_news?",
+    uploadNewsPic: base + "media/uploadimg?",
+    fetch: base + "material/get_material?",
+    del: base + "material/del_material?",
+    update: base + "material/update_news",
+    count: base + "material/get_materialcount?",
+    batch: base + "material/batchget_material?"
+  }
+};
 ```
 
 ```js
-import fs from 'fs'
+import fs from "fs";
 // 声明一个读取文件大小的方法
 function statFile(filepath) {
-  return new Promise((resolve, reject)=> {
+  return new Promise((resolve, reject) => {
     fs.stat(filepath, (err, stat) => {
-      if (err) reject(err)
-      else resolve(stat)
-    })
-  })
+      if (err) reject(err);
+      else resolve(stat);
+    });
+  });
 }
-
 ```
 
 ```js
@@ -389,10 +381,10 @@ async handle(operation, ...args) {
   const data = await this.request(options)
   return data
 }
-
 ```
+
 * [node-modules/formstream: multipart/form-data encoded stream, helper for file upload.](https://github.com/node-modules/formstream)
-* // 2. 根据传递进去的函数和token,拿到已经准备好的配置项
+* // 2. 根据传递进去的函数和 token,拿到已经准备好的配置项
   const options = await this[operation](tokenData.access_token, ...args)
 
 ### 测试
@@ -409,14 +401,14 @@ router.get('/upload', (ctx, next) {
 ```
 
 ```js
-import { resolve } from 'path'
-router.get('/upload', (ctx, next) => {
-  let mp = require('../wechat')
+import { resolve } from "path";
+router.get("/upload", (ctx, next) => {
+  let mp = require("../wechat");
   // 从以前封装好的方法中拿到config /server/wechat/index.js
-  let client = mp.getWechat()
+  let client = mp.getWechat();
   // 先测试临时素材上传
-  client.handle('uploadMaterial', 'video', resolve(__dirname, '../../123.mp4'))
-})
+  client.handle("uploadMaterial", "video", resolve(__dirname, "../../123.mp4"));
+});
 ```
 
 ### 测试上传素材
@@ -466,7 +458,6 @@ export const router = app => {
       ]
     }
     const data = await client.handle('uploadMaterial', 'news', news, {})
-
 ```
 
 ## 获取素材
@@ -495,7 +486,7 @@ fetchMaterial (token, mediaId, type, permanent) {
     options.body = form
   } else {
     if (type === 'video') {
-      // 官方临时素材视频下载不支持https:// 只能替换 
+      // 官方临时素材视频下载不支持https:// 只能替换
       url = url.replace('https://','http://')
     }
 
@@ -532,7 +523,7 @@ batchMaterial (token, options) {
   options.type = options.type || 'image'
   options.offset = options.offset || 0
   options.count = options.count || 10
-  
+
   const url = api.permanent.batch + 'access_token=' + token
   return {method: 'POST', url:url, body: options}
 }
@@ -543,7 +534,7 @@ batchMaterial (token, options) {
 
 ## 封装用户接口
 
-```js 
+```js
 // 增加接口api地址
 tag: {
   create: base + 'tags/create?',
@@ -664,9 +655,7 @@ fetchUserList(token, openId, lang) {
 
 ### 测试
 
-在replay里面测试
-
-
+在 replay 里面测试
 
 ```js
  // 测试微信粉丝,用户获取相关接口
@@ -690,19 +679,17 @@ fetchUserList(token, openId, lang) {
     }
     ctx.body = message.Content
   } else if (message.MsgType === 'image') {
-
 ```
+
 ```js
-
   const data = await client.handle('fetchTags')
-
 ```
 
 ## 自定义菜单创建于删除
 
 ### 封装接口
 
-1. 创建接口
+1.  创建接口
 
 ```js
 // 添加新的api地址
@@ -752,7 +739,6 @@ getCurrentMenuInfo(token) {
   const url = api.menu.getInfo + 'access_token=' + token
   return { url: url}
 }
-
 ```
 
 ### 测试菜单
@@ -760,6 +746,7 @@ getCurrentMenuInfo(token) {
 位置: server/wechat/reply.js
 
 增加回复规则
+
 ```js
   // 测试菜单各项功能
     } else if (message.Content === '2') {
@@ -767,11 +754,12 @@ getCurrentMenuInfo(token) {
       console.log('data= ' + JSON.stringify(menuData))
       ctx.body = message.Content
     }
-
 ```
 
-###  新增菜单
+### 新增菜单
+
 增加 server/wechat/menu.js
+
 ```js
 export default {
   button: [{
@@ -799,18 +787,18 @@ export default {
     'key': 'location'
   }]
 }
-
 ```
 
-## js-SDK权限验证
+## js-SDK 权限验证
 
 ### 存储临时票据
+
 位置: database/schema/ticket.js
-复制token.js代码批量替换ticket
+复制 token.js 代码批量替换 ticket
 
 ```js
-const mongoose = require('mongoose')
-const Schema = mongoose.Schema
+const mongoose = require("mongoose");
+const Schema = mongoose.Schema;
 
 const TicketSchema = new Schema({
   name: String,
@@ -826,51 +814,52 @@ const TicketSchema = new Schema({
       default: Date.now()
     }
   }
-})
+});
 
-TicketSchema.pre('save', function (next) {
+TicketSchema.pre("save", function(next) {
   if (this.isNew) {
-    this.meta.createdAt = this.meta.updatedAt = Date.now()
+    this.meta.createdAt = this.meta.updatedAt = Date.now();
   } else {
-    this.meta.updatedAt = Date.now()
+    this.meta.updatedAt = Date.now();
   }
-  next()
-})
+  next();
+});
 
 TicketSchema.statics = {
   async getTicket() {
     const ticket = await this.findOne({
-      name: 'ticket'
-    }).exec()
+      name: "ticket"
+    }).exec();
 
     // if (ticket && ticket.ticket) {
     //   ticket.ticket = ticket.ticket
     // }
 
-    return ticket
+    return ticket;
   },
   async saveTicket(data) {
     let ticket = await this.findOne({
-      name: 'ticket'
-    }).exec()
+      name: "ticket"
+    }).exec();
     if (ticket) {
-      ticket.ticket = data.ticket
-      ticket.expires_in = data.expires_in
+      ticket.ticket = data.ticket;
+      ticket.expires_in = data.expires_in;
     } else {
       ticket = new Ticket({
-        name: 'ticket',
+        name: "ticket",
         ticket: data.ticket,
         expires_in: data.expires_in
-      })
+      });
     }
 
-    await ticket.save()
-    .then(product => console.log(product))
-    .catch(err => console.log(err))
-    return data
+    await ticket
+      .save()
+      .then(product => console.log(product))
+      .catch(err => console.log(err));
+    return data;
   }
-}
-const Ticket = mongoose.model('Ticket', TicketSchema)
+};
+const Ticket = mongoose.model("Ticket", TicketSchema);
 ```
 
 位置: wechat/index.js
@@ -881,9 +870,8 @@ const Ticket = mongoose.model('Ticket')
 
  getTicket: async () => await Ticket.getTicket(),
  saveTicket: async (data) => await Ticket.saveTicket(data)
-
-
 ```
+
 位置: wechat-lib/index.js 新增
 
 ```js
@@ -935,9 +923,9 @@ import {sign} from './util'
   sign(ticket, url) {
     return sign(ticket, url)
   }
-
 ```
-2. sign签名算法 
+
+2.  sign 签名算法
 
 位置: wechat-lib/util.js
 
@@ -945,26 +933,28 @@ import {sign} from './util'
 // 生成随机字符串
 
 function createNonce() {
-  return Math.random().toString(36).substr(2, 15)
+  return Math.random()
+    .toString(36)
+    .substr(2, 15);
 }
 // 生成时间戳
 function createTimestamp() {
-  return parseInt(new Date().getTime() / 1000, 0) + ''
+  return parseInt(new Date().getTime() / 1000, 0) + "";
 }
 // 排序方法
 function raw(args) {
-  let keys = Object.keys(args)
-  let str = ''
-  let newArgs = {}
-  keys = keys.sort()
-  keys.forEach((key) => {
-    newArgs[key.toLowerCase()] = args[key]
-  })
+  let keys = Object.keys(args);
+  let str = "";
+  let newArgs = {};
+  keys = keys.sort();
+  keys.forEach(key => {
+    newArgs[key.toLowerCase()] = args[key];
+  });
 
   for (let k in newArgs) {
-    str += '&' + k + '=' + newArgs[k]
+    str += "&" + k + "=" + newArgs[k];
   }
-  return str.substr(1)
+  return str.substr(1);
 }
 
 function signIt(nonce, ticket, timestamp, url) {
@@ -973,58 +963,51 @@ function signIt(nonce, ticket, timestamp, url) {
     nonceStr: nonce,
     timestamp: timestamp,
     url: url
-  }
-  const string = raw(ret)
-  const sha = sha1(string)
-  return sha
-
+  };
+  const string = raw(ret);
+  const sha = sha1(string);
+  return sha;
 }
 
 function sign(ticket, url) {
   // 声明一个随机的字符串
-  const nonceStr = createNonce()
+  const nonceStr = createNonce();
   // 时间戳
-  const timestamp = createTimestamp()
-  const signature = signIt(nonceStr, ticket, timestamp, url)
+  const timestamp = createTimestamp();
+  const signature = signIt(nonceStr, ticket, timestamp, url);
   return {
     noncestr: nonceStr,
     timestamp: timestamp,
     signature: signature
-  }
+  };
 }
 
-export {
-  formatMessage,
-  parseXML,
-  sign,
-  tpl
-}
-
+export { formatMessage, parseXML, sign, tpl };
 ```
-## 签名流程
 
+## 签名流程
 
 底层的数据交互的操作/微信相关的数据调用
 
 位置 server/api/wechat.js
+
 ```js
-import { getWechat } from '../wechat'
+import { getWechat } from "../wechat";
 // 拿到case
-const client = getWechat()
+const client = getWechat();
 // 拿到全局票据
 export async function getSignatureAsync(url) {
-  const data = await client.fetchAccessToken()
-  const token = data.access_token
-  const ticketData = await client.fetchTicket()
-  const ticket = ticketData.ticket
+  const data = await client.fetchAccessToken();
+  const token = data.access_token;
+  const ticketData = await client.fetchTicket();
+  const ticket = ticketData.ticket;
 
-  let params = client.sign(ticket, url)
-  params.appId = client.appID
-  return params
+  let params = client.sign(ticket, url);
+  params.appId = client.appID;
+  return params;
 }
 
 // 像俄罗斯套娃一样层层的函数,越往里面的函数需要的参数越少
-
 ```
 
 位置: server/api/controllers/wechat.js
@@ -1034,7 +1017,7 @@ export async function getSignatureAsync(url) {
 import * as api from '../api'
 export aysnc function signature(ctx, next) {
   const url = ctx.query.url
-  // 
+  //
   if (!url) ctx.throw(404)
   const params = await api.getSignatureAsync(url)
   ctx.body = {
@@ -1043,17 +1026,15 @@ export aysnc function signature(ctx, next) {
   }
 }
 ```
+
 #### path: server/api/index.js
-通过index.js 收集所需要暴露出来的api
+
+通过 index.js 收集所需要暴露出来的 api
 
 ```js
-import {
-  getSignatureAsync
-}from './wechat'
+import { getSignatureAsync } from "./wechat";
 
-export {
-  getSignatureAsync
-}
+export { getSignatureAsync };
 
 // 这样就可以在其他文件中通过 import * as api from '../api'
 // 直接通过api来调用所暴露出来的方法了
@@ -1063,17 +1044,15 @@ export {
 增加一个
 
 ```js
-import {signature} from '../controllers/wechat'
-router.get('/wechat-signature', wechat.signature)
-
+import { signature } from "../controllers/wechat";
+router.get("/wechat-signature", wechat.signature);
 ```
 
 ## 测试页面
+
 pages/about.vue
 
 ```js
-
-
 // nuxt.config.js 中增加
 
 ,
@@ -1085,7 +1064,6 @@ pages/about.vue
 ```
 
 ```js
-
   beforeMount() {
     const wx = window.wx
     const url = window.location.href
@@ -1126,66 +1104,64 @@ pages/about.vue
 ## 实现请求签名接口
 
 新增 /store
-如果有store会被nuxt 现式的调用,在store里面存放跟vue有关的数据状态
+如果有 store 会被 nuxt 现式的调用,在 store 里面存放跟 vue 有关的数据状态
 
 index.js
 
 ```js
-import Vuex from 'vuex'
-import getters from './getters'
-import actions from './actions'
-import mutations from './mutations'
-
+import Vuex from "vuex";
+import getters from "./getters";
+import actions from "./actions";
+import mutations from "./mutations";
 
 const createStore = () => {
   return new Vuex.Store({
-    state: {
-
-    },
+    state: {},
     getters,
     actions,
     mutations
-  })
-}
+  });
+};
 
-export default  createStore
+export default createStore;
 ```
-新建  actions.js mutations.js getters.js
+
+新建 actions.js mutations.js getters.js
 
 actions.js
+
 ```js
-import Services from './Services'
+import Services from "./Services";
 // 通过它来请求签名值的操作
 export default {
   getWechatSignature({ commit }, url) {
-    return Services.getWechatSignature(url)
+    return Services.getWechatSignature(url);
   }
-}
-
+};
 ```
+
 新建 ./services.js
 
 ```js
-import axios from 'axios'
-const baseUrl = ''
+import axios from "axios";
+const baseUrl = "";
 class Services {
   getWechatSignature(url) {
-    return axios.get(`${baseUrl}/wechat-signature?url=${url}`)
+    return axios.get(`${baseUrl}/wechat-signature?url=${url}`);
   }
 }
-export default new Service()
+export default new Service();
 ```
+
 mutations.js getters.js 暂时未对外空对象
 
-
-
 ---
+
 ### 一个有趣的问题
 
-当我定义了一个类并将其在其自身当中new 一个实例并导出
+当我定义了一个类并将其在其自身当中 new 一个实例并导出
 
-```js 
-
+```js
 class Services {
   getWechatSignature(url) {
    // ...
@@ -1209,21 +1185,19 @@ Use equal casing. Compare these module identifiers:
     E:\myGitHub\fire\store /^\.\/(?!-)[^.]+\.(js)$/
 ```
 
-* 猜测应该是 将./service文件导入进来了
+* 猜测应该是 将./service 文件导入进来了
 * 并且多导入了一份,换了个路径
-* 应该是./Service路径有歧义
-
+* 应该是./Service 路径有歧义
 
 QA
 
-授权的access_token 和公共号的全局票据access_token有什么区别?
+授权的 access_token 和公共号的全局票据 access_token 有什么区别?
 
     微信网页授权是基于OAuth2.0 体系是完全独立的,不仅在微信中可以使用而且在其他网站,比如微博github等等 包括自己的网站中都可以使用,让用户手动同意后会颁发一个凭证,这个凭证可以帮助用户登录,也可以帮助服务器获得用户资料,和全局票据access_token,完全不是一个东西,除了名字一样
 
-授权的access_token和 是全局的还是跟每次获取的code要配对?一对一的使用,一个人用一次?
+授权的 access_token 和 是全局的还是跟每次获取的 code 要配对?一对一的使用,一个人用一次?
 
-
-授权的reflash token是怎么回事,刷不刷新有什么区别?
+授权的 reflash token 是怎么回事,刷不刷新有什么区别?
 
     虽然官方提供了token的刷新机制,不是追求很完备的回话体验,可以完全不用理会,只会让你初次接触授权的时候让你的开发难度变大,索性不要实现它,每次只要重新获取即可,如果我们每次获取一个新的token,而且官方也没有设置调用的门槛限制,那么也不用保存这个token,也不用关心和,用户是一对一和一对多的关系,反正每次都要用户来同意授权然后拿着code换token,再拿token获取用户资料就行了
 
@@ -1231,18 +1205,17 @@ QA
 
     必须是认证后的服务号,才能在网页中利用OAuth这个机制,来获取用户的信息,订阅号无论是认证还是不认证都是不行的.
 
-
 ## 用户授权获取用户资料的流程
 
 整个请求的后端流程
 
-1. 用户来访问我们的页面a 路径/a?a=1&b=2
-2. 后端收到用户访问的请求, url地址 /a 然后将它拼接成跳转地址redirect_url 这个地址是微信的一个地址,只不过拼接了一个参数这个参数值里面的目标地址,假设是b页面 redirect_url = /b 最终返回给用户的就是 redirect_url = /b 这个地址
-3. 当用户点击页面上的同意授权按钮,然后就会二次跳转,就跳到b页面,将上a页面带过来的参数比如商品的id,在b页面可以拿到微信传过来的code 还有state就是从a页面传递过来的参数, /b?code&state,通过拿到的code换区access_token 和openid 然后就能获取用户资料或者可以做一些业务层面的封装
+1.  用户来访问我们的页面 a 路径/a?a=1&b=2
+2.  后端收到用户访问的请求, url 地址 /a 然后将它拼接成跳转地址 redirect_url 这个地址是微信的一个地址,只不过拼接了一个参数这个参数值里面的目标地址,假设是 b 页面 redirect_url = /b 最终返回给用户的就是 redirect_url = /b 这个地址
+3.  当用户点击页面上的同意授权按钮,然后就会二次跳转,就跳到 b 页面,将上 a 页面带过来的参数比如商品的 id,在 b 页面可以拿到微信传过来的 code 还有 state 就是从 a 页面传递过来的参数, /b?code&state,通过拿到的 code 换区 access_token 和 openid 然后就能获取用户资料或者可以做一些业务层面的封装
 
 ### 新增 wechat-lib/oauth.js
 
-复制 index.js的代码修改
+复制 index.js 的代码修改
 
 ```js
 import request from 'request-promise'
@@ -1296,33 +1269,32 @@ export default class WechatOAuth {
     return data
   }
 }
-
 ```
 
 位置: router.js
 
 ```js
-import { signature, redirect, oauth } from '../controllers/wechat'
-  router.get('/wechat-signature', signature)
-  // 将用户偷偷跳转到二跳地址
-  router.get('/wechat-redirect', redirect)
-  // 用户跳转过来之后需要通过授权机制获取用户信息
+import { signature, redirect, oauth } from "../controllers/wechat";
+router.get("/wechat-signature", signature);
+// 将用户偷偷跳转到二跳地址
+router.get("/wechat-redirect", redirect);
+// 用户跳转过来之后需要通过授权机制获取用户信息
 ```
+
 位置: controllers/wechat.js
 
 ```js
 // 拼接好跳转的目标地址,把用户重定向到这个地址
 export async function redirect(ctx, next) {
   // SITE_ROOT_URL网站根地址
-  const target = config.SITE_ROOT_URL + '/oauth'
-  const scope = 'snsapi_userinfo' 
-  const {a, b} = ctx.query // 拿到的查询参数
-  const params = `${a}_${b}`
-  const url = api.getAuthorizeURL(scope, target, params)
+  const target = config.SITE_ROOT_URL + "/oauth";
+  const scope = "snsapi_userinfo";
+  const { a, b } = ctx.query; // 拿到的查询参数
+  const params = `${a}_${b}`;
+  const url = api.getAuthorizeURL(scope, target, params);
   // 将用户重定向到新的地址
-  ctx.redirect(url)
+  ctx.redirect(url);
 }
-
 ```
 
 * // 为什么需要'/oauth'?(const target = config.SITE_ROOT_URL + '/oauth')
@@ -1330,43 +1302,40 @@ export async function redirect(ctx, next) {
 * // http://vuespz.viphk.ngrok.org/oauth?code=061IDL2D1AWfr20P1SYC1pvY2D1IDL2Y&state=1_2
 
 位置 api/index.js
-```js
-import {
-  getSignatureAsync,
-  getAuthorizeURL
-} from './wechat'
 
-export {
-  getSignatureAsync,
-  getAuthorizeURL
-}
+```js
+import { getSignatureAsync, getAuthorizeURL } from "./wechat";
+
+export { getSignatureAsync, getAuthorizeURL };
 
 // 这样就可以在其他文件中通过 import * as api from '../api'
 // 直接通过api来调用所暴露出来的方法了
-
 ```
 
 位置 api/wechat.js
 
 ```js
-import { getWechat, getOAuth } from '../wechat'
+import { getWechat, getOAuth } from "../wechat";
 export async function getAuthorizeURL(...args) {
-  const oauth = getOAuth()
-  return oauth.getAuthorizeURL(...args)
+  const oauth = getOAuth();
+  return oauth.getAuthorizeURL(...args);
 }
 ```
 
 新增/wechat/index.js
 
-新增一个接口,暴露出oauth的实例
+新增一个接口,暴露出 oauth 的实例
+
 ```js
-import WechatOAuth from '../wechat-lib/oauth'
+import WechatOAuth from "../wechat-lib/oauth";
 export const getOAuth = () => {
-  const oauth = new WechatOAuth(wechatConfig.wechat)
-  return oauth
-}
+  const oauth = new WechatOAuth(wechatConfig.wechat);
+  return oauth;
+};
 ```
+
 控制器 controllers/wechat.js
+
 ```js
 import { parse as urlParse } from 'url'
 import { parse as queryParse } from 'querystring'
@@ -1385,35 +1354,27 @@ export async function oauth(ctx, next) {
     success: true,
     data: user
   }
-
 ```
 
 位置 api/index.js
-```js
-import {
-  getSignatureAsync,
-  getAuthorizeURL,
-  getUserByCode
-} from './wechat'
 
-export {
-  getSignatureAsync,
-  getAuthorizeURL,
-  getUserByCode
-}
+```js
+import { getSignatureAsync, getAuthorizeURL, getUserByCode } from "./wechat";
+
+export { getSignatureAsync, getAuthorizeURL, getUserByCode };
 
 // 这样就可以在其他文件中通过 import * as api from '../api'
 // 直接通过api来调用所暴露出来的方法了
-
 ```
 
 位置: api/wechat.js
+
 ```js
 export async function getUserByCode(code) {
-  const oauth = getOAuth()
-  const data = await oauth.fetchAccessToken(code)
-  const user = await oauth.getUserInfo(data.access_token, data.openid)
-  return user
+  const oauth = getOAuth();
+  const data = await oauth.fetchAccessToken(code);
+  const user = await oauth.getUserInfo(data.access_token, data.openid);
+  return user;
 }
 ```
 
@@ -1421,11 +1382,12 @@ export async function getUserByCode(code) {
 
 ## 测试页面
 
-位置pages/oauth.vue
+位置 pages/oauth.vue
 
-复制about.vue
+复制 about.vue
 
 修改为
+
 ```js
 beforeMount() {
     const url = window.location.href
@@ -1441,28 +1403,34 @@ beforeMount() {
   }
 }
 ```
+
 位置 /store/actions.js
+
 ```js
  getUserByOAuth({ commit }, url) {
     return Services.getUserByOAuth(url)
   }
-  ```
+```
 
-在service.js新增
+在 service.js 新增
+
 ```js
  getUserByOAuth(url) {
     return axios.get(`${baseUrl}/wechat-oauth?url=${url}`)
   }
 ```
-在config中新增
+
+在 config 中新增
 
 ```js
  SITE_ROOT_URL: 'http://http://vuespz.viphk.ngrok.org',
- ```
+```
+
 ## 添加回调域名
- 在测试号的
+
+在测试号的
 https://mp.weixin.qq.com/debug/cgi-bin/sandboxinfo?action=showinfo&t=sandbox/index
 
-* 接口配置信息修改 
-* 体验接口权限表 > 网页服务 > 网页帐号	网页授权获取用户基本信息
+* 接口配置信息修改
+* 体验接口权限表 > 网页服务 > 网页帐号 网页授权获取用户基本信息
 * vuespz.viphk.ngrok.org/
