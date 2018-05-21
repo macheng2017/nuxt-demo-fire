@@ -122,7 +122,7 @@ export default {
       }
       //
       const res = await this.$store.dispatch('createOrder', {
-        productId: this.product._id,
+        productId: that.product._id,
         name: name,
         address: address,
         phoneNumber: phoneNumber
@@ -136,7 +136,7 @@ export default {
       window.wx.chooseWXPay({
         //
       })
-      console.log(item)
+      // console.log(item)
       // 支付功能暂未实现
     }
   },
