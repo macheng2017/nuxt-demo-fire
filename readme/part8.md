@@ -162,3 +162,16 @@ middleware放置前端的中间件
 
 
 https://mp.weixin.qq.com/wiki?t=resource/res_main&id=mp1421140842
+
+
+## 小程序后端登录路由
+想几个问题
+* 微信消息推送的用户他的session怎么维持?
+* 微信网页中的用户session怎么维持?
+* 网站 后台管理员的session维持?
+* 小程序用户session怎么维持?
+
+
+## 小程序路由文件
+
+

@@ -23,6 +23,7 @@ const UserSchema = new Schema({
   sex: String,
   email: String,
   headimgurl: String,
+  avatarUrl: String,
   password: String,
   hashed_password: String,
   loginAttempts: {
@@ -90,17 +91,17 @@ UserSchema.methods = {
     return new Promise((resolve, reject) => {
       if (that.lockUntil && that.lockUntil < Date.now()) {
         that.update({
-          $set: {
-            loginAttempts: 1
+            $set: {
+              loginAttempts: 1
+            },
+            $unset: {
+              lockUntil: 1
+            }
           },
-          $unset: {
-            lockUntil: 1
-          }
-        },
-        function (err) {
-          if (!err) resolve(true)
-          else reject(err)
-        })
+          function (err) {
+            if (!err) resolve(true)
+            else reject(err)
+          })
       } else {
         let updates = {
           $inc: {
