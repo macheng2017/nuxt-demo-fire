@@ -28,7 +28,7 @@
     "node-sass": "^4.8.3",
     "nuxt": "latest",
     "pug": "^2.0.3",
-    "qiniu": "^7.1.3",
+    "qiniu": "^7.1.7",
     "qiniu-web-uploader": "^2.1.2",
     "ramda": "^0.25.0",
     "random-token": "^0.0.8",

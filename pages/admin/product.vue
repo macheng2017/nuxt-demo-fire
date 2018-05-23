@@ -85,8 +85,10 @@ import { mapState } from 'vuex'
 import axios from 'axios'
 import vSnackbar from '~/components/snackbar'
 import randomToken from 'random-token'
-import Uploader from 'qiniu-web-uploader'
-// import Uploader from '../../server/libs/upload'
+
+// import Uploader from 'qiniu-web-uploader'
+// import * as uploadFile from '../../server/libs/upload'
+// const qiniu = require('qiniu')
 
 export default {
   layout: 'admin', // 不在使用default模板
@@ -103,10 +105,11 @@ export default {
         images: [],
         parameters: []
       },
-      upload: {
-        dasharray: 0,
-        dashoffset: 0
-      },
+      // upload: {
+      //   dasharray: 0,
+      //   dashoffset: 0
+      // },
+      process: 0,
       editing: false
     }
   },
@@ -177,36 +180,111 @@ export default {
       })
       return res.data.data.token
     },
+    // async uploadFile(file, token, key) {
+    //   let res = await axios.post('/qiniu/upload', {
+    //     params: {
+    //       file: file,
+    //       token: token,
+    //       key: key
+    //     }
+    //   })
+    //   return res.data.data.token
+    // },
     // 上传图片 e是事件
     async uploadImg(e) {
       // this.upload.dashoffset = this.upload.dasharray
       let file = e.target.files[0]
       let key = randomToken(32)
       // 通过这个key 传递给七牛,返回一个凭证
-      key = `products/${key}`
+      key = `products/${key}${file.name.substr(file.name.lastIndexOf('.'))}`
       console.log('product.vue key ' + key)
-      console.log('product.vue file ' + JSON.stringify(e))
+      console.log('product.vue file ' + file.name)
       let token = await this.getUptoken(key)
       console.log('token ' + token)
-      let uptoken = {
-        uptoken: token,
-        key: Buffer.from(key).toString('base64')
-      }
+      // let uptoken = {
+      //   uptoken: token,
+      //   key: Buffer.from(key).toString('base64')
+      // }
       // 华东z0
       // Uploader.QINIU_UPLOAD_URL = '//up-z0.qiniu.com'
       // const url = '//up-z0.qiniu.com'
-      let uploader = new Uploader(file, uptoken)
+      // let uploader = new Uploader(file, uptoken, key)
       // listener upload process
-      uploader.on('progress', () => {
-        console.log(uploader.percent)
-        // let dashoffset = this.upload.dasharray * (1 - uploader.percent)
-        // this.upload.dashoffset = dashoffset
+      // uploader.on('progress', () => {
+      //   console.log(uploader.percent)
+      //   // let dashoffset = this.upload.dasharray * (1 - uploader.percent)
+      //   // this.upload.dashoffset = dashoffset
+      // })
+      // let res = await uploader.upload()
+      // await this.uploader(file, token, key)
+      // uploader.cancel()
+      // console.log(res)
+      // this.edited.images.push(res.key)
+      let self = this
+      var data = new FormData()
+      data.append('token', token)
+      data.append('file', file)
+      axiosInstance({
+        method: 'POST',
+        url: 'http://up.qiniu.com',
+        data: data,
+        onUploadProgress: function(progressEvent) {
+          var percentCompleted = Math.round(
+            progressEvent.loaded * 100 / progressEvent.total
+          )
+          //console.log(percentCompleted)
+          //对应上传进度条
+          self.progress = percentCompleted
+        }
       })
-      let res = await uploader.upload()
-      uploader.cancel()
-      console.log(res)
-      this.edited.images.push(res.key)
+        .then(function(res) {
+          //console.log('res',res)
+          let { base_url, path } = res.data
+          console.log(' res.data ' + JSON.stringify(res.data))
+          // //页面所用字段
+          // self.previewAvatar = `${base_url}${path}?imageView2/1/w/154/h/154`
+          // //传给后台不完整
+          // self.formData.avatar = `${path}`
+        })
+        .catch(function(err) {
+          console.log('err', err)
+        })
     },
+    // uploader(localFile, uploadToken, key) {
+    // let config = new qiniu.conf.Config()
+    // config.useHttpsDomain = true
+    // 华东地区的空间qiniu.zone.Zone_z0
+    // config.zone = qiniu.zone.Zone_z0
+    // const bucketManager = new qiniu.rs.BucketManager(mac, config)
+    // let resumeUploader = new qiniu.resume_up.ResumeUploader(config)
+    // let putExtra = new qiniu.resume_up.PutExtra()
+    // 扩展参数
+    // this.putExtra.params = {
+    //   'x:name': '',
+    //   'x:age': 27,
+    // }
+    // this.putExtra.fname = 'testfile.mp4'
+    // 如果指定了断点记录文件，那么下次会从指定的该文件尝试读取上次上传的进度，以实现断点续传
+    // putExtra.resumeRecordFile = 'progress.log'
+    // let key = null
+    // 文件分片上传
+    // resumeUploader.putFile(uploadToken, key, localFile, putExtra, function(
+    //   respErr,
+    //   respBody,
+    //   respInfo
+    // ) {
+    //   if (respErr) {
+    //     throw respErr
+    //   }
+    //   if (respInfo.statusCode === 200) {
+    //     console.log(respBody)
+    //   } else {
+    //     console.log(respInfo.statusCode)
+    //     console.log(respBody)
+    //   }
+    // })
+    // },
+
     deleteImg(index) {
       this.edited.images.splice(index, 1)
     }
