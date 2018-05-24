@@ -90,15 +90,15 @@ export default {
         '商品和服务的差异',
         '清关服务',
         '物流服务',
-        '需要更多帮助,请联系管理员'
+        '需要更多帮助, 请联系管理员'
       ],
       showInfo: false, // 是否出现信息模态窗
-      inof: {
+      info: {
         name: '',
         phoneNumber: '',
         address: ''
       },
-      model: {
+      modal: {
         visible: false,
         content: '成功',
         timer: null
@@ -113,16 +113,16 @@ export default {
   methods: {
     async handPayment() {
       // 拿到上下文
-      const that = this
+      // const that = this
       // 取出用户填写数据
       const { name, address, phoneNumber } = this.info
       if (!name || !address || !phoneNumber) {
-        toggleModal(this.model, '收货信息忘填了')
+        toggleModal(this.modal, '收货信息忘填了')
         return
       }
       //
       const res = await this.$store.dispatch('createOrder', {
-        productId: that.product._id,
+        productId: this.product._id,
         name: name,
         address: address,
         phoneNumber: phoneNumber

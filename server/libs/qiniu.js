@@ -8,7 +8,7 @@ import {
 // qiniu.config.SECRET_KEY = config.qiniu.SK
 
 // 存储空间名称
-const bucket = ' miniprogram'
+const bucket = 'miniprogram'
 // 创建各种上传凭证之前，我们需要定义好其中鉴权对象mac
 const accessKey = config.qiniu.AK
 const secretKey = config.qiniu.SK

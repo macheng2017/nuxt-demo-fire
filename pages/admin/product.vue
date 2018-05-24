@@ -86,7 +86,7 @@ import axios from 'axios'
 import vSnackbar from '~/components/snackbar'
 import randomToken from 'random-token'
 
-// import Uploader from 'qiniu-web-uploader'
+import Uploader from 'qiniu-web-uploader'
 // import * as uploadFile from '../../server/libs/upload'
 // const qiniu = require('qiniu')
 
@@ -105,10 +105,10 @@ export default {
         images: [],
         parameters: []
       },
-      // upload: {
-      //   dasharray: 0,
-      //   dashoffset: 0
-      // },
+      upload: {
+        dasharray: 0,
+        dashoffset: 0
+      },
       process: 0,
       editing: false
     }
@@ -201,55 +201,56 @@ export default {
       console.log('product.vue file ' + file.name)
       let token = await this.getUptoken(key)
       console.log('token ' + token)
-      // let uptoken = {
-      //   uptoken: token,
-      //   key: Buffer.from(key).toString('base64')
-      // }
+      let uptoken = {
+        uptoken: token,
+        key: Buffer.from(key).toString('base64')
+      }
       // 华东z0
       // Uploader.QINIU_UPLOAD_URL = '//up-z0.qiniu.com'
       // const url = '//up-z0.qiniu.com'
-      // let uploader = new Uploader(file, uptoken, key)
+      let uploader = new Uploader(file, uptoken)
       // listener upload process
-      // uploader.on('progress', () => {
-      //   console.log(uploader.percent)
-      //   // let dashoffset = this.upload.dasharray * (1 - uploader.percent)
-      //   // this.upload.dashoffset = dashoffset
-      // })
-      // let res = await uploader.upload()
-      // await this.uploader(file, token, key)
-      // uploader.cancel()
-      // console.log(res)
-      // this.edited.images.push(res.key)
-      let self = this
-      var data = new FormData()
-      data.append('token', token)
-      data.append('file', file)
-      axiosInstance({
-        method: 'POST',
-        url: 'http://up.qiniu.com',
-        data: data,
-        onUploadProgress: function(progressEvent) {
-          var percentCompleted = Math.round(
-            progressEvent.loaded * 100 / progressEvent.total
-          )
-          //console.log(percentCompleted)
-          //对应上传进度条
-          self.progress = percentCompleted
-        }
+      uploader.on('progress', () => {
+        console.log(uploader.percent)
+        // let dashoffset = this.upload.dasharray * (1 - uploader.percent)
+        // this.upload.dashoffset = dashoffset
       })
-        .then(function(res) {
-          //console.log('res',res)
-          let { base_url, path } = res.data
-          console.log(' res.data ' + JSON.stringify(res.data))
-          // //页面所用字段
-          // self.previewAvatar = `${base_url}${path}?imageView2/1/w/154/h/154`
-          // //传给后台不完整
-          // self.formData.avatar = `${path}`
-        })
-        .catch(function(err) {
-          console.log('err', err)
-        })
-    },
+      let res = await uploader.upload()
+      // await this.uploader(file, token, key)
+      uploader.cancel()
+      console.log(res)
+      this.edited.images.push(res.key)
+      // let self = this
+      // var data = new FormData()
+      // data.append('token', token)
+      // data.append('file', file)
+      // const axiosInstance = axios.create({})
+      // axiosInstance({
+      //   method: 'POST',
+      //   url: 'http://up.qiniu.com',
+      //   data: data,
+      //   onUploadProgress: function (progressEvent) {
+      //     var percentCompleted = Math.round(
+      //       progressEvent.loaded * 100 / progressEvent.total
+      //     )
+      //     // console.log(percentCompleted)
+      //     // 对应上传进度条
+      //     self.progress = percentCompleted
+        // }
+      // })
+      //   .then(function (res) {
+      //     // console.log('res',res)
+      //     // let { base_url, path } = res.data
+      //     console.log(' res.data ' + JSON.stringify(res.data))
+      //     // // 页面所用字段
+      //     // self.previewAvatar = `${base_url}${path}?imageView2/1/w/154/h/154`
+      //     // //传给后台不完整
+      //     // self.formData.avatar = `${path}`
+      //   })
+      //   .catch(function (err) {
+      //     console.log('err', err)
+      //   })
+    // },
     // uploader(localFile, uploadToken, key) {
     // let config = new qiniu.conf.Config()
     // config.useHttpsDomain = true
@@ -283,7 +284,7 @@ export default {
     //     console.log(respBody)
     //   }
     // })
-    // },
+    },
 
     deleteImg(index) {
       this.edited.images.splice(index, 1)
