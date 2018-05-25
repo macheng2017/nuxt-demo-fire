@@ -61,7 +61,7 @@
 <script>
 import cell from '~/components/cell.vue'
 import { mapState } from 'vuex'
-import { setTimeout } from 'timers'
+import wechat from '~/static/mixins/wechat.js'
 function toggleModal(obj, content) {
   clearTimeout(obj.timer)
   obj.visible = true
@@ -106,8 +106,8 @@ export default {
   },
   computed: {
     ...mapState({
-      'imageCDN': 'imageCDN',
-      'product': 'currentProduct'
+      imageCDN: 'imageCDN',
+      product: 'currentProduct'
     })
   },
   methods: {
@@ -127,22 +127,38 @@ export default {
         address: address,
         phoneNumber: phoneNumber
       })
-      if (!res.order) {
+      // 从服务器拿到的数据
+      const data = res.data
+      if (!data || !data.success) {
         // 使用提示窗口
         toggleModal(this.modal, '服务器异常,请等待后重新尝试')
         return
       }
       // 微信支付api
-      window.wx.chooseWXPay({
-        //
+      // 微信公众平台  https://mp.weixin.qq.com/wiki?t=resource/res_main&id=mp1421141115
+      wx.chooseWXPay({
+        timestamp: data.timestamp, // 支付签名时间戳，注意微信jssdk中的所有使用timestamp字段均为小写。但最新版的支付后台生成签名使用的timeStamp字段名需大写其中的S字符
+        nonceStr: data.nonceStr, // 支付签名随机串，不长于 32 位
+        package: data.package, // 统一支付接口返回的prepay_id参数值，提交格式如：prepay_id=\*\*\*）
+        signType: data.signType, // 签名方式，默认为'SHA1'，使用新版支付需传入'MD5'
+        paySign: data.paySign, // 支付签名
+        success: response => {
+          // 支付成功后的回调函数
+          try {
+            window.WeixinJSBridge.log(response.err_msg)
+          }
+        }
       })
-      // console.log(item)
-      // 支付功能暂未实现
     }
   },
+  // https://cn.vuejs.org/v2/guide/mixins.html
+  mixins: [wechat],
   async beforeMount() {
     const id = this.$route.query.id
     this.$store.dispatch('showProduct', id)
+    // 在获取商品信息之后,初始化微信网页端接口行为
+    const url = window.location.href
+    await this.wechatConfig(url)
   },
   components: {
     cell
