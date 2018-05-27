@@ -19,7 +19,7 @@ class Services {
     address,
     phoneNumber
   }) {
-    return axios.post(`${baseUrl}/api/wechat-pay`, {
+    return axios.post(`${baseUrl}/wechat-pay`, {
       productId,
       name,
       address,

@@ -9,7 +9,7 @@ npm-debug.log
 
 # Nuxt generate
 dist
-server/config/index.js
+server/config/
 
 .vscode
 ecosystem.json
