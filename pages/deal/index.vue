@@ -146,6 +146,13 @@ export default {
           // 支付成功后的回调函数
           try {
             window.WeixinJSBridge.log(response.err_msg)
+          } catch (e) {
+            console.log(e)
+          }
+          if (response.err_msg === 'get_brand_wcpay_request:ok') {
+            // The wechat pay success
+            toggleModal(this.modal, '支付成功')
+            return
           }
         }
       })
@@ -158,7 +165,8 @@ export default {
     this.$store.dispatch('showProduct', id)
     // 在获取商品信息之后,初始化微信网页端接口行为
     const url = window.location.href
-    await this.wechatConfig(url)
+    await this.wechatInit(url)
+    // 初始化是通过 mixins: [wechat]暴露出来的wechatConfig的方法实现的
   },
   components: {
     cell

@@ -2,7 +2,7 @@
 export default {
   methods: {
     // 让微信客户端知道,在当前的url地址网页能有调用微信api的能力
-    async wechatConfig(url) {
+    async wechatInit(url) {
       // 通过服务器拿到签名
       const res = await this.$store.dispatch('getWechatSignature', url)
       const {
