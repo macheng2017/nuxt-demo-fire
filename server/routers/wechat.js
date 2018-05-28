@@ -2,7 +2,8 @@
 import {
   controller,
   get,
-  post
+  post,
+  required
 } from '../decorator/router'
 import config from '../config'
 import wechatMiddle from '../wechat-lib/middleware'
@@ -15,7 +16,6 @@ import {
 import {
   getParamsAsync
 } from '../wechat-lib/pay'
-
 
 import mongoose from 'mongoose'
 const User = mongoose.model('User')

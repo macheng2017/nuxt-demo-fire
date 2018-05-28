@@ -3,14 +3,14 @@ import fs from 'fs'
 import config from '../config'
 import path from 'path'
 
-const cert = path.resolve(__dirname, '../', 'config/cert/apiclient_cert.p2')
+const cert = path.resolve(__dirname, '../', 'config/cert/apiclient_cert.p12')
 
 const paymentConfig = {
-  appId: config.shop.appId, // 商户id
+  appId: config.shop.appId,
   partnerKey: config.shop.partnerKey,
-  mchId: config.shop.mchId,
+  mchId: config.shop.mchId, // 商户id
   notifyUrl: config.shop.notifyUrl,
-  ptx: fs.readdirSync(cert) // 证书
+  ptx: fs.readFileSync(cert) // 证书
 
 }
 const Payment = wechatPay.Payment

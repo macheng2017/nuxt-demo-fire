@@ -3,6 +3,7 @@ const {
   Schema
 } = mongoose
 const Mixed = Schema.Types.Mixed
+const ObjectId = Schema.Types.ObjectId
 
 const PaymentSchema = new Schema({
   //  关联User表
