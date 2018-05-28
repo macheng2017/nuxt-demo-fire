@@ -5,6 +5,8 @@ import {
   required
 } from '../decorator/router'
 import api from '../api'
+import mongoose from 'mongoose'
+const Payment = mongoose.model('Payment')
 // 通过@ decorator 然后传入一个路径,
 // 这个路径可以看做一个命名空间,请求地址匹配到这个路径,都应该在这个页面中进行控制的
 // 比如可以用@controller('/wechat')
@@ -62,6 +64,14 @@ export class adminController {
     ctx.session = null
     ctx.body = {
       success: true
+    }
+  }
+  @get('payments')
+  async getPayments(ctx, next) {
+    const data = await Payment.find({}).populate('product user').exec()
+    ctx.body = {
+      success: true,
+      data: data
     }
   }
 }

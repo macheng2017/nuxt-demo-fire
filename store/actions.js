@@ -144,6 +144,15 @@ export default {
     state.currentProduct = res.data.data
     return res
   },
+  async fetchPayments({
+    state
+  }) {
+    const {
+      data
+    } = await Services.getPayments()
+    state.payments = data.data
+    return data
+  },
   async fetchUserAndOrders({
     state
   }) {

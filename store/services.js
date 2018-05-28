@@ -26,6 +26,9 @@ class Services {
       phoneNumber
     })
   }
+  getPayments() {
+    return axios.get(`${baseUrl}/admin/payments`)
+  }
 
   // 获取家族的数据
   fetchHouse(id) {

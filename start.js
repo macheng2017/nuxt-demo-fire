@@ -1,21 +1,23 @@
-const { resolve } = require('path')
+const {
+  resolve
+} = require('path')
 const r = path => resolve(__dirname, 'path')
 require('babel-core/register')({
   'presets': [
-    'stage-3',
-    ['latest-node',
-     { 'target': 'current' }
+    'stage-3', ['latest-node',
+      {
+        'target': 'current'
+      }
     ]
   ],
   plugins: [
-    'transform-decorators-legacy',
-    [
-      'module-alias', [
-        {
-          src: r('./server'), 'expose': '~',
-          src: r('./server/database'), 'expose': 'database'
-        }
-      ]
+    'transform-decorators-legacy', [
+      'module-alias', [{
+        src: r('./server'),
+        'expose': '~',
+        src: r('./server/database'),
+        'expose': 'database'
+      }]
     ]
   ]
 })
