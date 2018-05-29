@@ -23,8 +23,9 @@ export default function (opts, reply) {
     // part2
     if (ctx.method === 'GET') {
       if (sha === signature) {
-        console.log('echostr ' + echostr)
-        ctx.body = echostr
+        // console.log('echostr ' + echostr)
+        // ctx.body = echostr
+        return echostr
       } else {
         ctx.body = 'Failed'
       }

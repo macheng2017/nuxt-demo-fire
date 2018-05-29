@@ -12,10 +12,10 @@ export async function signature(ctx, next) {
   //
   if (!url) ctx.throw(404)
   url = decodeURIComponent(url)
-  const data = await api.wechat.getSignatureAsync(url)
+  const params = await api.wechat.getSignatureAsync(url)
   ctx.body = {
     success: true,
-    data: data
+    data: params
   }
 }
 // 拼接好跳转的目标地址,把用户重定向到这个地址
@@ -35,7 +35,7 @@ export async function redirect(ctx, next) {
       id
     } = ctx.query // visit 跳转地址,以前是写死的,现在重构下
     const params = id ? `${visit}_${id}` : visit
-    const url = await api.wechat.getAuthorizeURL(scope, target, params)
+    const url = api.wechat.getAuthorizeURL(scope, target, params)
     console.log('***************************' + url)
     // 将用户重定向到新的地址
     ctx.redirect(url)

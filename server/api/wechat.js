@@ -19,7 +19,7 @@ export async function getSignatureAsync(url) {
   params.appId = client.appID
   return params
 }
-export async function getAuthorizeURL(...args) {
+export function getAuthorizeURL(...args) {
   const oauth = getOAuth()
   return oauth.getAuthorizeURL(...args)
 }

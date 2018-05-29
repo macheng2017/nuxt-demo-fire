@@ -31,7 +31,6 @@ export class WechatController {
   async wechatHear(ctx, next) {
     const middle = wechatMiddle(config.wechat, reply)
     const body = await middle(ctx, next)
-    console.log('body ' + body)
     ctx.body = body
   }
   @post('/wechat-hear')
@@ -51,6 +50,7 @@ export class WechatController {
     const ip = ctx.ip.replace('::ffff:', '')
     // 用户初次登录会公众号网页,会让其授权,然后就持有了用户信息,持久化session
     const session = ctx.session
+    console.log('routers/wechat/createOrder session' + JSON.stringify(session))
     const {
       productId,
       name,
