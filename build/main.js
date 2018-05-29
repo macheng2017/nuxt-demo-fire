@@ -70,6 +70,13 @@ module.exports =
 /************************************************************************/
 /******/ ([
 /* 0 */
+/***/ function(module, exports, __webpack_require__) {
+
+module.exports = __webpack_require__(7);
+
+
+/***/ },
+/* 1 */
 /***/ function(module, exports) {
 
 module.exports = {
@@ -78,13 +85,31 @@ module.exports = {
   */
   head: {
     title: 'starter',
-    meta: [{ charset: 'utf-8' }, { name: 'viewport', content: 'width=device-width, initial-scale=1' }, { hid: 'description', name: 'description', content: 'Nuxt.js project' }],
-    link: [{ rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }]
+    meta: [{ charset: 'utf-8' },
+    // { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+    { hid: 'description', name: 'description', content: 'Nuxt.js project' }],
+    link: [{ rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }],
+    // 能够根据设备自动适配
+    script: [{
+      src: 'http://g.tbcdn.cn/mtb/lib-flexible/0.3.4/??flexible_css.js,flexible.js'
+    }, {
+      src: 'http://res.wx.qq.com/open/js/jweixin-1.2.0.js'
+    }]
   },
   /*
   ** Global CSS
   */
-  css: ['~static/css/main.css'],
+  css: [{
+    src: 'static/sass/base.sass',
+    lang: 'sass?indentedSyntax=true'
+  }, {
+    src: 'swiper/dist/css/swiper.css'
+  }],
+
+  // 存放外部依赖的轮播插件
+  plugins: [{
+    src: '~/plugins/swiper.js', ssr: false
+  }],
   /*
   ** Customize the progress-bar color
   */
@@ -108,13 +133,6 @@ module.exports = {
     }
   }
 };
-
-/***/ },
-/* 1 */
-/***/ function(module, exports, __webpack_require__) {
-
-module.exports = __webpack_require__(7);
-
 
 /***/ },
 /* 2 */
@@ -165,7 +183,7 @@ module.exports = require("regenerator-runtime");
 
 "use strict";
 /* WEBPACK VAR INJECTION */(function(__dirname) {Object.defineProperty(exports, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_E_myGitHub_fire_node_modules_babel_runtime_regenerator__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_E_myGitHub_fire_node_modules_babel_runtime_regenerator__ = __webpack_require__(0);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_E_myGitHub_fire_node_modules_babel_runtime_regenerator___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_E_myGitHub_fire_node_modules_babel_runtime_regenerator__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_koa__ = __webpack_require__(3);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_koa___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_koa__);
@@ -187,18 +205,17 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 
 
-var MIDDLEWARES = ['router'];
+// Import and Set Nuxt.js options
+var config = __webpack_require__(1);
+config.dev = !(process.env === 'production');
 // 拿到当前完整路径
 var r = function r(path) {
   return __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_4_path__["resolve"])(__dirname, path);
 };
-
-var host = process.env.HOST || '127.0.0.1';
+var host = process.env.HOST || '0.0.0.0';
 var port = process.env.PORT || 3000;
+var MIDDLEWARES = ['database', 'common', 'router'];
 
-// Import and Set Nuxt.js options
-var config = __webpack_require__(0);
-config.dev = !(process.env === 'production');
 // 将start重新包装改成class形式
 
 var Server = function () {
@@ -232,21 +249,32 @@ var Server = function () {
           while (1) {
             switch (_context2.prev = _context2.next) {
               case 0:
-
                 // Instantiate nuxt.js
                 nuxt = new __WEBPACK_IMPORTED_MODULE_2_nuxt__["Nuxt"](config);
                 // Build in development
 
                 if (!config.dev) {
-                  _context2.next = 5;
+                  _context2.next = 12;
                   break;
                 }
 
+                _context2.prev = 2;
                 builder = new __WEBPACK_IMPORTED_MODULE_2_nuxt__["Builder"](nuxt);
-                _context2.next = 5;
+                _context2.next = 6;
                 return builder.build();
 
-              case 5:
+              case 6:
+                _context2.next = 12;
+                break;
+
+              case 8:
+                _context2.prev = 8;
+                _context2.t0 = _context2['catch'](2);
+
+                console.error(_context2.t0);
+                process.exit(1);
+
+              case 12:
 
                 this.app.use(function () {
                   var _ref2 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_E_myGitHub_fire_node_modules_babel_runtime_regenerator___default.a.mark(function _callee(ctx, next) {
@@ -259,6 +287,7 @@ var Server = function () {
 
                           case 2:
                             ctx.status = 200; // koa defaults to 404 when it sees that status is unset
+                            ctx.req.session = ctx.session;
                             return _context.abrupt('return', new Promise(function (resolve, reject) {
                               ctx.res.on('close', resolve);
                               ctx.res.on('finish', resolve);
@@ -268,7 +297,7 @@ var Server = function () {
                               });
                             }));
 
-                          case 4:
+                          case 5:
                           case 'end':
                             return _context.stop();
                         }
@@ -284,12 +313,12 @@ var Server = function () {
                 this.app.listen(port, host);
                 console.log('Server listening on ' + host + ':' + port); // eslint-disable-line no-console
 
-              case 8:
+              case 15:
               case 'end':
                 return _context2.stop();
             }
           }
-        }, _callee2, this);
+        }, _callee2, this, [[2, 8]]);
       }));
 
       function start() {

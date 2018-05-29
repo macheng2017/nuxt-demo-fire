@@ -14,15 +14,16 @@ export default function (opts, reply) {
     const str = [token, timestamp, nonce].sort().join('')
     const sha = sha1(str)
     console.log(sha === signature)
-    if (sha === signature) {
-      ctx.body = echostr
-    } else {
-      ctx.body = 'Failed'
-    }
+    // if (sha === signature) {
+    //   ctx.body = echostr
+    // } else {
+    //   ctx.body = 'Failed'
+    // }
 
-// part2
+    // part2
     if (ctx.method === 'GET') {
       if (sha === signature) {
+        console.log('echostr ' + echostr)
         ctx.body = echostr
       } else {
         ctx.body = 'Failed'

@@ -26,11 +26,12 @@ const Payment = mongoose.model('Payment')
 // 这个路径可以看做一个命名空间,请求地址匹配到这个路径,都应该在这个页面中进行控制的
 // 比如可以用@controller('/wechat')
 @controller('')
-export class WechatCotroller {
+export class WechatController {
   @get('/wechat-hear')
   async wechatHear(ctx, next) {
     const middle = wechatMiddle(config.wechat, reply)
     const body = await middle(ctx, next)
+    console.log('body ' + body)
     ctx.body = body
   }
   @post('/wechat-hear')
@@ -90,7 +91,8 @@ export class WechatCotroller {
         attach: '公众号周边手办支付',
         aut_trade_no: 'Product' + (new Date()), // 跟随一个时间戳不是最佳方式,最好是uuid
         spbill_create_ip: ip,
-        total_fee: product.price * 100, // 微信公众号文档中单位是分,我们的是元
+        // total_fee: product.price * 100, // 微信公众号文档中单位是分,我们的是元
+        total_fee: 0.01 * 100, // 测试用付的钱比较少
         openid: session.user.unionid,
         trade_type: 'JSAPI'
       }
@@ -128,7 +130,7 @@ export class WechatCotroller {
     await redirect(ctx, next)
   }
   @get('/wechat-oauth')
-  async wechatOauth(ctx, next) {
+  async wechatOAuth(ctx, next) {
     await oauth(ctx, next)
   }
 }

@@ -3,8 +3,7 @@ const base = 'https://api.weixin.qq.com/sns/'
 const api = {
   // 用来让用户手动同意授权的地址,二跳地址
   authorize: 'https://open.weixin.qq.com/connect/oauth2/authorize?',
-  // 网页授权token
-  access_token: base + 'oauth2/access_token?',
+  accessToken: base + 'oauth2/access_token?',
   userInfo: base + 'userinfo?'
 }
 
@@ -16,7 +15,9 @@ export default class WechatOAuth {
     this.appSecret = opts.appSecret
   }
   async request(options) {
-    options = Object.assign({}, options, {json: true})
+    options = Object.assign({}, options, {
+      json: true
+    })
     try {
       const response = await request(options)
       return response
@@ -30,18 +31,20 @@ export default class WechatOAuth {
     // console.log(' getAuthorizeURL ' + url)
     return url
   }
-  async fetchAccessToken(code) {
-    // 获取token的地址 code 是微信服务器返回的
-    const url = `${api.access_token}appid=${this.appID}&secret=${this.appSecret}&code=${code}&grant_type=authorization_code`
 
+  async fetchAccessToken (code) {
+    const url = `${api.accessToken}appid=${this.appID}&secret=${this.appSecret}&code=${code}&grant_type=authorization_code`
     const data = await this.request({url: url})
+
     return data
   }
 
   async getUserInfo(token, openID, lang = 'zh_CN') {
     const url = `${api.userInfo}access_token=${token}&openid=${openID}&lang=${lang}`
     console.log('+++++++++getUserInfo url ' + url)
-    const data = await this.request({url: url})
+    const data = await this.request({
+      url: url
+    })
     return data
   }
 }

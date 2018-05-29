@@ -1,17 +1,21 @@
 import api from '../api'
 import config from '../config'
-import { parse as urlParse } from 'url'
-import { parse as queryParse } from 'querystring'
+import {
+  parse as urlParse
+} from 'url'
+import {
+  parse as queryParse
+} from 'querystring'
 
 export async function signature(ctx, next) {
   let url = ctx.query.url
   //
   if (!url) ctx.throw(404)
   url = decodeURIComponent(url)
-  const params = await api.wechat.getSignatureAsync(url)
+  const data = await api.wechat.getSignatureAsync(url)
   ctx.body = {
     success: true,
-    params: params
+    data: data
   }
 }
 // 拼接好跳转的目标地址,把用户重定向到这个地址
@@ -26,7 +30,10 @@ export async function redirect(ctx, next) {
     const scope = 'snsapi_userinfo'
     // console.log('-------------------------------------------------------' + ctx.query.url)
     console.log(`-------------------------------------------------------${JSON.stringify(ctx)}`)
-    const {visit, id} = ctx.query // visit 跳转地址,以前是写死的,现在重构下
+    const {
+      visit,
+      id
+    } = ctx.query // visit 跳转地址,以前是写死的,现在重构下
     const params = id ? `${visit}_${id}` : visit
     const url = await api.wechat.getAuthorizeURL(scope, target, params)
     console.log('***************************' + url)

@@ -14,3 +14,16 @@
 https://cn.vuejs.org/v2/guide/mixins.html
 
 npm install wechat-pay --save
+
+ngrok 代理合并到一个窗口
+
+修改 package.js
+
+// "build": "nuxt build && backpack build",
+
+"build": "nuxt build",
+编译 nuxt
+
+npm run build
+启动生产环境
+NODE_ENV=production node start
